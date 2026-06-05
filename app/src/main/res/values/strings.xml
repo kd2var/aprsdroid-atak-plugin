@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">APRS Import</string>
+
+    <string name="app_desc">
+        Imports APRSdroid stations into ATAK and updates them in real time.
+    </string>
+
+</resources>
