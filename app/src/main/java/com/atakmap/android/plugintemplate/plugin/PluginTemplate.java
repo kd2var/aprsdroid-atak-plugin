@@ -5,8 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.Location;
-import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
+
 import com.atak.plugins.impl.PluginContextProvider;
 import com.atak.plugins.impl.PluginLayoutInflater;
 import com.atakmap.android.maps.MapView;
@@ -14,8 +16,10 @@ import com.atakmap.android.maps.MapGroup;
 import com.atakmap.android.maps.Marker;
 import com.atakmap.coremap.maps.coords.GeoPoint;
 import com.atakmap.coremap.maps.assets.Icon;
+
 import java.util.HashMap;
 import java.util.Iterator;
+
 import gov.tak.api.plugin.IPlugin;
 import gov.tak.api.plugin.IServiceController;
 import gov.tak.api.ui.IHostUIService;
@@ -24,7 +28,7 @@ import gov.tak.api.ui.PaneBuilder;
 import gov.tak.api.ui.ToolbarItem;
 import gov.tak.api.ui.ToolbarItemAdapter;
 import gov.tak.platform.marshal.MarshalManager;
-
+import android.os.Bundle;
 public class PluginTemplate implements IPlugin {
 
     private static final String TAG = "APRSIMPORT";
@@ -34,11 +38,14 @@ public class PluginTemplate implements IPlugin {
     private IHostUIService uiService;
     private ToolbarItem toolbarItem;
     private Pane templatePane;
+    private View paneView;
+    private TextView aprsTextView;
 
     private BroadcastReceiver aprsReceiver;
     private final HashMap<String, Long> lastHeard = new HashMap<>();
     private MapGroup aprsGroup;
     private final HashMap<String, Marker> aprsMarkers = new HashMap<>();
+    private final HashMap<String, String> stationComments = new HashMap<>();
 
     public PluginTemplate(IServiceController serviceController) {
         this.serviceController = serviceController;
@@ -90,10 +97,95 @@ public class PluginTemplate implements IPlugin {
             public void onReceive(Context context, Intent intent) {
                 Log.d(TAG, "Broadcast received: " + intent.getAction());
 
+                Bundle extras = intent.getExtras();
+
+                if (extras != null) {
+                    for (String key : extras.keySet()) {
+                        Log.d(TAG, "EXTRA: " + key + "=" + extras.get(key));
+                    }
+                }
+
                 Location loc = intent.getParcelableExtra("location");
+
                 String callsign = intent.getStringExtra("callsign");
+
+                if (callsign == null) {
+                    callsign = intent.getStringExtra("source");
+                }
+
                 String packet = intent.getStringExtra("status");
-                String comment = packet != null ? packet : "";
+
+                if (packet == null) {
+                    packet = intent.getStringExtra("packet");
+                }
+
+                Log.d(TAG, "CALLSIGN=[" + callsign + "]");
+                Log.d(TAG, "PACKET=[" + packet + "]");
+
+                String comment = "";
+
+                if (packet != null) {
+
+                    int pos = packet.indexOf(":=");
+
+                    if (pos < 0) {
+                        pos = packet.indexOf(":!");
+                    }
+
+                    if (pos >= 0) {
+
+                        String body = packet.substring(pos + 2);
+
+                        int slashA = body.indexOf("/A=");
+
+                        if (slashA >= 0) {
+
+                            int spaceAfterAltitude = body.indexOf(' ', slashA);
+
+                            if (spaceAfterAltitude > 0 &&
+                                    spaceAfterAltitude < body.length() - 1) {
+
+                                comment = body.substring(spaceAfterAltitude + 1).trim();
+                            }
+
+                        } else {
+
+                            // no altitude field
+                            if (body.length() > 19) {
+                                comment = body.substring(19).trim();
+                            }
+                        }
+                    }
+                }
+                Log.d(TAG, "CALLSIGN=[" + callsign + "]");
+                Log.d(TAG, "COMMENT=[" + comment + "]");
+                Log.d(TAG, "COMMENT=[" + comment + "]");
+
+                Log.d(TAG, "aprsTextView is null = " + (aprsTextView == null));
+
+                if (callsign != null) {
+
+                    if (!comment.isEmpty()) {
+                        stationComments.put(callsign, comment);
+                    }
+
+                    if (aprsTextView != null) {
+
+                        StringBuilder sb = new StringBuilder();
+
+                        for (String call : stationComments.keySet()) {
+
+                            sb.append(call)
+                                    .append("\n")
+                                    .append(stationComments.get(call))
+                                    .append("\n\n");
+                        }
+
+                        aprsTextView.setText(sb.toString());
+
+                        Log.d(TAG, "Updated APRS pane: " + callsign);
+                    }
+                }
 
                 if (loc != null && callsign != null) {
                     lastHeard.put(callsign, System.currentTimeMillis());
@@ -130,12 +222,8 @@ public class PluginTemplate implements IPlugin {
                                 .build();
                         marker.setIcon(icon);
 
-                        // Callsign label
                         marker.setTitle(callsign);
-
-                        // Comment for ATAK details panel
                         marker.setSummary(comment);
-
                         marker.setShowLabel(true);
                         marker.setAlwaysShowText(true);
 
@@ -183,8 +271,15 @@ public class PluginTemplate implements IPlugin {
 
     private void showPane() {
         if (templatePane == null) {
-            templatePane = new PaneBuilder(
-                    PluginLayoutInflater.inflate(pluginContext, R.layout.main_layout, null))
+
+            paneView = PluginLayoutInflater.inflate(
+                    pluginContext,
+                    R.layout.main_layout,
+                    null);
+
+            aprsTextView = paneView.findViewById(R.id.aprsText);
+
+            templatePane = new PaneBuilder(paneView)
                     .setMetaValue(Pane.RELATIVE_LOCATION, Pane.Location.Default)
                     .setMetaValue(Pane.PREFERRED_WIDTH_RATIO, 0.5D)
                     .setMetaValue(Pane.PREFERRED_HEIGHT_RATIO, 0.5D)
