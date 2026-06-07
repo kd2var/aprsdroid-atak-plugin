@@ -29,6 +29,7 @@ import gov.tak.api.ui.ToolbarItem;
 import gov.tak.api.ui.ToolbarItemAdapter;
 import gov.tak.platform.marshal.MarshalManager;
 import android.os.Bundle;
+import com.atakmap.android.maps.MapDataRef;
 public class PluginTemplate implements IPlugin {
 
     private static final String TAG = "APRSIMPORT";
@@ -119,9 +120,21 @@ public class PluginTemplate implements IPlugin {
                     packet = intent.getStringExtra("packet");
                 }
 
+                String aprsSymbol = getAprsSymbol(packet);
+
+                Log.d(TAG, "RAW SYMBOL=[" + aprsSymbol + "]");
+
+                String normalized = normalizeAprsSymbol(aprsSymbol);
+
+                Log.d(TAG, "NORMALIZED=[" + normalized + "]");
+
+                Log.d(TAG,
+                        "SYMBOL=[" + aprsSymbol + "] "
+                                + getSymbolName(aprsSymbol)
+                                + " INDEX=" + getAprsIndex(aprsSymbol));
+
                 Log.d(TAG, "CALLSIGN=[" + callsign + "]");
                 Log.d(TAG, "PACKET=[" + packet + "]");
-
                 String comment = "";
 
                 if (packet != null) {
@@ -214,13 +227,42 @@ public class PluginTemplate implements IPlugin {
                     Marker marker = aprsMarkers.get(callsign);
 
                     if (marker == null) {
-                        // Create marker with white dot
+
                         marker = new Marker(new GeoPoint(lat, lon), callsign);
 
+
+                        Log.d(TAG, "ICON PATH = " + getAprsIcon(normalized));
+
+                        int drawableId = getAprsDrawable(normalized);
+
+                        Log.d(TAG,
+                                "DRAWABLE="
+                                        + drawableId
+                                        + " SYMBOL="
+                                        + aprsSymbol);
+
+                        String uri =
+                                "android.resource://"
+                                        + pluginContext.getPackageName()
+                                        + "/"
+                                        + drawableId;
+
+                        Log.d(TAG, "ICON URI=" + uri);
+
+                        Log.d(TAG,
+                                "TABLE=" + normalizeAprsSymbol(aprsSymbol).charAt(0)
+                                        + " SYMBOL_CHAR=" + normalizeAprsSymbol(aprsSymbol).charAt(1)
+                                        + " ASCII=" + (int)normalizeAprsSymbol(aprsSymbol).charAt(1)
+                                        + " INDEX=" + getAprsIndex(normalizeAprsSymbol(aprsSymbol)));
+
                         Icon icon = new Icon.Builder()
-                                .setImageUri(0, "file:///android_asset/marker_generic.png")
+                                .setImageUri(0, uri)
+                                .setSize(32, 32)
                                 .build();
+
                         marker.setIcon(icon);
+
+                        Log.d(TAG, "ICON OBJECT = " + marker.getIcon());
 
                         marker.setTitle(callsign);
                         marker.setSummary(comment);
@@ -239,6 +281,7 @@ public class PluginTemplate implements IPlugin {
                         marker.setPoint(new GeoPoint(lat, lon));
                         marker.setTitle(callsign);
                         marker.setSummary(comment);
+
                         Log.d(TAG, "Updated marker " + callsign);
                     }
                 }
@@ -268,6 +311,171 @@ public class PluginTemplate implements IPlugin {
             } catch (Exception ignored) {}
         }
     }
+
+    private int getAprsDrawable(String aprsSymbol) {
+
+        int index = getAprsIndex(aprsSymbol);
+
+        String resourceName;
+
+        if (aprsSymbol.startsWith("/")) {
+
+            resourceName = String.format(
+                    "aprs_t0_symbol_%02d",
+                    index);
+
+        } else if (aprsSymbol.startsWith("\\")) {
+
+            resourceName = String.format(
+                    "aprs_t1_symbol_%02d",
+                    index);
+
+        } else {
+
+            resourceName = String.format(
+                    "aprs_t2_symbol_%02d",
+                    index);
+        }
+
+        int drawableId = pluginContext.getResources()
+                .getIdentifier(
+                        resourceName,
+                        "drawable",
+                        pluginContext.getPackageName());
+
+        Log.d(TAG,
+                "RESOURCE="
+                        + resourceName
+                        + " ID="
+                        + drawableId);
+
+        return drawableId;
+    }
+    private int getAprsIndex(String symbol) {
+
+        if (symbol == null || symbol.length() != 2) {
+            return -1;
+        }
+
+        symbol = normalizeAprsSymbol(symbol);
+
+        return symbol.charAt(1) - 33;
+    }
+
+
+    private String normalizeAprsSymbol(String symbol) {
+
+        if (symbol == null || symbol.length() != 2)
+            return symbol;
+
+        char overlay = symbol.charAt(0);
+        char base = symbol.charAt(1);
+
+        if ((overlay >= 'A' && overlay <= 'Z')
+                || (overlay >= '0' && overlay <= '9')) {
+
+            String converted = "\\" + String.valueOf(base);
+
+            Log.d(TAG,
+                    "Converting "
+                            + symbol
+                            + " to "
+                            + converted);
+
+            return converted;
+        }
+
+        if (overlay == 'I' && base == '#') {
+
+            Log.d(TAG,
+                    "Converting "
+                            + symbol
+                            + " to /#");
+
+            return "/#";
+        }
+
+        return symbol;
+    }
+    private String getAprsSymbol(String packet) {
+
+        if (packet == null) {
+            return null;
+        }
+
+        int pos = packet.indexOf(':');
+
+        if (pos < 0) {
+            return null;
+        }
+
+        String body = packet.substring(pos + 1);
+
+        if (body.length() < 20) {
+            return null;
+        }
+
+        char table = body.charAt(9);
+        char symbol = body.charAt(19);
+
+        return "" + table + symbol;
+    }
+
+
+
+    private String getSymbolName(String symbol) {
+
+        if (symbol == null) {
+            return "Unknown";
+        }
+
+        switch (symbol) {
+
+            case "/-":
+                return "Home";
+
+            case "/[":
+                return "Person";
+
+            case "/>":
+                return "Car";
+
+            case "/_":
+                return "Weather";
+
+            case "/#":
+                return "Digipeater";
+
+            default:
+                return "Unknown";
+        }
+    }
+
+    private String getAprsIcon(String aprsSymbol) {
+
+        int index = getAprsIndex(aprsSymbol);
+
+        if (aprsSymbol.startsWith("/")) {
+
+            return "asset:///aprs/table0/symbol_"
+                    + String.format("%02d", index)
+                    + ".png";
+
+        } else if (aprsSymbol.startsWith("\\")) {
+
+            return "asset:///aprs/table1/symbol_"
+                    + String.format("%02d", index)
+                    + ".png";
+
+        } else {
+
+            return "asset:///aprs/table2/symbol_"
+                    + String.format("%02d", index)
+                    + ".png";
+        }
+    }
+
+
 
     private void showPane() {
         if (templatePane == null) {
