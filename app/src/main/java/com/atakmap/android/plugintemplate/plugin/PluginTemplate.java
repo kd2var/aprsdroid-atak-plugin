@@ -27,7 +27,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import android.os.Handler;
 import android.os.Looper;
-
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+import com.atakmap.android.preference.AtakPreferences;
 import gov.tak.api.plugin.IPlugin;
 import gov.tak.api.plugin.IServiceController;
 import gov.tak.api.ui.IHostUIService;
@@ -106,6 +108,38 @@ public class PluginTemplate implements IPlugin {
                 cleanupRunnable,
                 60 * 1000);
 
+        AtakPreferences prefs =
+                new AtakPreferences(
+                        MapView.getMapView().getContext());
+
+        Log.e(TAG,
+                "PREF CONTEXT="
+                        + MapView.getMapView().getContext()
+                        .getPackageName());
+
+        Log.e(TAG,
+                "ONSTART PREF FILE="
+                        + prefs.getAll().toString());
+
+        int savedHours =
+                prefs.get(
+                        PREF_STALE_HOURS,
+                        1);
+
+        Log.e(TAG,
+                "ONSTART ATAK PREF="
+                        + savedHours);
+
+        staleMillis =
+                savedHours
+                        * 60L
+                        * 60L
+                        * 1000L;
+
+        Log.e(TAG,
+                "ONSTART LOADED="
+                        + savedHours);
+
 
         Log.d(TAG, "Started APRS cleanup timer");
 
@@ -137,6 +171,7 @@ public class PluginTemplate implements IPlugin {
                 }
 
                 String aprsSymbol = getAprsSymbol(packet);
+
 
                 Log.d(TAG, "RAW SYMBOL=[" + aprsSymbol + "]");
 
@@ -458,7 +493,25 @@ public void onStop() {
 
     private String getAprsIcon(String aprsSymbol) {
 
+        if (aprsSymbol == null) {
+
+            Log.e(TAG,
+                    "NULL APRS SYMBOL - using default icon");
+
+            return "asset:///aprs/table0/symbol_00.png";
+        }
+
         int index = getAprsIndex(aprsSymbol);
+
+        if (index < 0) {
+
+            Log.e(TAG,
+                    "INVALID APRS SYMBOL ["
+                            + aprsSymbol
+                            + "] - using default icon");
+
+            index = 0;
+        }
 
         if (aprsSymbol.startsWith("/")) {
 
@@ -479,6 +532,8 @@ public void onStop() {
                     + ".png";
         }
     }
+
+    private static final String PREF_STALE_HOURS = "aprs_stale_hours";
 
     private long staleMillis = 60 * 60 * 1000;
 
@@ -521,18 +576,45 @@ private final Runnable cleanupRunnable =
 
             final int[] choices = {1, 2, 4, 8, 12, 24};
 
+            AtakPreferences prefs =
+                    new AtakPreferences(
+                            MapView.getMapView().getContext());
+
+            Log.e(TAG,
+                    "PREF CONTEXT="
+                            + MapView.getMapView().getContext()
+                            .getPackageName());
+
+            Log.e(TAG,
+                    "SHOWPANE PREF FILE="
+                            + prefs.getAll().toString());
+
+            int savedHours =
+                    prefs.get(
+                            PREF_STALE_HOURS,
+                            1);
+
+            Log.e(TAG,
+                    "SHOWPANE PREF VALUE="
+                            + savedHours);
+
+            // initialize currentIndex from savedHours
             final int[] currentIndex = {0};
+            for (int i = 0; i < choices.length; i++) {
+                if (choices[i] == savedHours) {
+                    currentIndex[0] = i;
+                    break;
+                }
+            }
+
+
+// now set staleMillis from the saved index
+            staleMillis = choices[currentIndex[0]] * 60L * 60L * 1000L;
 
             staleHoursText.setText(
                     "Stale Time: "
-                            + choices[currentIndex[0]]
+                            + savedHours
                             + " hour");
-
-            staleMillis =
-                    choices[currentIndex[0]]
-                            * 60L
-                            * 60L
-                            * 1000L;
 
             staleMinus.setOnClickListener(v -> {
 
@@ -550,6 +632,22 @@ private final Runnable cleanupRunnable =
                             "Stale Time: "
                                     + choices[currentIndex[0]]
                                     + " hour");
+
+                    prefs.set(
+                            PREF_STALE_HOURS,
+                            choices[currentIndex[0]]);
+
+                    int verify =
+                            prefs.get(
+                                    PREF_STALE_HOURS,
+                                    -1);
+
+                    Log.e(TAG,
+                            "VERIFY="
+                                    + verify);
+                    Log.e(TAG,
+                            "SAVE TEST "
+                                    + choices[currentIndex[0]]);
                 }
             });
 
@@ -569,8 +667,30 @@ private final Runnable cleanupRunnable =
                             "Stale Time: "
                                     + choices[currentIndex[0]]
                                     + " hour");
+
+                    prefs.set(
+                            PREF_STALE_HOURS,
+                            choices[currentIndex[0]]);
+
+                    int verify =
+                            prefs.get(
+                                    PREF_STALE_HOURS,
+                                    -1);
+
+                    Log.e(TAG,
+                            "VERIFY="
+                                    + verify);
+
+                    Log.e(TAG,
+                            "PREF FILE="
+                                    + prefs.getAll().toString());
+                    Log.e(TAG,
+                            "SAVE TEST "
+                                    + choices[currentIndex[0]]);
                 }
             });
+
+
 
             templatePane = new PaneBuilder(paneView)
                     .setMetaValue(Pane.RELATIVE_LOCATION, Pane.Location.Default)
