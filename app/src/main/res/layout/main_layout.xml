@@ -10,6 +10,34 @@
         android:orientation="vertical"
         android:padding="10dp">
 
+        <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_marginBottom="8dp">
+
+    <Button
+        android:id="@+id/staleMinus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="-" />
+
+    <TextView
+        android:id="@+id/staleHoursText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="Stale Time: 1 hour" />
+
+    <Button
+        android:id="@+id/stalePlus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="+" />
+
+</LinearLayout>
+
         <TextView
             android:id="@+id/aprsText"
             android:layout_width="match_parent"

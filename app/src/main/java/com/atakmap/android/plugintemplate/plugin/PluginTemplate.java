@@ -8,7 +8,11 @@ import android.location.Location;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
+import java.util.ArrayList;
+import java.util.List;
 import com.atak.plugins.impl.PluginContextProvider;
 import com.atak.plugins.impl.PluginLayoutInflater;
 import com.atakmap.android.maps.MapView;
@@ -16,9 +20,13 @@ import com.atakmap.android.maps.MapGroup;
 import com.atakmap.android.maps.Marker;
 import com.atakmap.coremap.maps.coords.GeoPoint;
 import com.atakmap.coremap.maps.assets.Icon;
-
+import android.widget.Button;
+import android.widget.TextView;
+import android.view.View;
 import java.util.HashMap;
 import java.util.Iterator;
+import android.os.Handler;
+import android.os.Looper;
 
 import gov.tak.api.plugin.IPlugin;
 import gov.tak.api.plugin.IServiceController;
@@ -92,6 +100,14 @@ public class PluginTemplate implements IPlugin {
         if (uiService != null) {
             uiService.addToolbarItem(toolbarItem);
         }
+
+        // Start stale station cleanup timer
+        cleanupHandler.postDelayed(
+                cleanupRunnable,
+                60 * 1000);
+
+
+        Log.d(TAG, "Started APRS cleanup timer");
 
         aprsReceiver = new BroadcastReceiver() {
             @Override
@@ -203,22 +219,7 @@ public class PluginTemplate implements IPlugin {
                 if (loc != null && callsign != null) {
                     lastHeard.put(callsign, System.currentTimeMillis());
 
-                    // Remove stale stations
-                    long now = System.currentTimeMillis();
-                    Iterator<HashMap.Entry<String, Long>> it = lastHeard.entrySet().iterator();
-                    while (it.hasNext()) {
-                        HashMap.Entry<String, Long> entry = it.next();
-                        if (now - entry.getValue() > (30 * 60 * 1000)) {
-                            String oldCall = entry.getKey();
-                            Marker oldMarker = aprsMarkers.get(oldCall);
-                            if (oldMarker != null && aprsGroup != null) {
-                                aprsGroup.removeItem(oldMarker);
-                                aprsMarkers.remove(oldCall);
-                                Log.d(TAG, "Removed stale station " + oldCall);
-                            }
-                            it.remove();
-                        }
-                    }
+
 
                     double lat = loc.getLatitude();
                     double lon = loc.getLongitude();
@@ -297,20 +298,24 @@ public class PluginTemplate implements IPlugin {
         Log.d(TAG, "APRS receiver registered");
     }
 
-    @Override
-    public void onStop() {
-        Log.d(TAG, "Plugin stopping");
+@Override
+public void onStop() {
+    Log.d(TAG, "Plugin stopping");
 
-        if (uiService != null) {
-            uiService.removeToolbarItem(toolbarItem);
-        }
+    // Stop stale station cleanup timer
+    cleanupHandler.removeCallbacks(cleanupRunnable);
 
-        if (aprsReceiver != null) {
-            try {
-                pluginContext.unregisterReceiver(aprsReceiver);
-            } catch (Exception ignored) {}
-        }
+    if (uiService != null) {
+        uiService.removeToolbarItem(toolbarItem);
     }
+
+    if (aprsReceiver != null) {
+        try {
+            pluginContext.unregisterReceiver(aprsReceiver);
+        } catch (Exception ignored) {}
+    }
+}
+
 
     private int getAprsDrawable(String aprsSymbol) {
 
@@ -475,6 +480,24 @@ public class PluginTemplate implements IPlugin {
         }
     }
 
+    private long staleMillis = 60 * 60 * 1000;
+
+    private final Handler cleanupHandler =
+            new Handler(Looper.getMainLooper());
+
+private final Runnable cleanupRunnable =
+        new Runnable() {
+            @Override
+            public void run() {
+
+                removeStaleStations();
+                refreshAprsPane();
+
+                cleanupHandler.postDelayed(
+                        this,
+                        60 * 1000);
+            }
+        };
 
 
     private void showPane() {
@@ -487,6 +510,68 @@ public class PluginTemplate implements IPlugin {
 
             aprsTextView = paneView.findViewById(R.id.aprsText);
 
+            Button staleMinus =
+                    paneView.findViewById(R.id.staleMinus);
+
+            Button stalePlus =
+                    paneView.findViewById(R.id.stalePlus);
+
+            TextView staleHoursText =
+                    paneView.findViewById(R.id.staleHoursText);
+
+            final int[] choices = {1, 2, 4, 8, 12, 24};
+
+            final int[] currentIndex = {0};
+
+            staleHoursText.setText(
+                    "Stale Time: "
+                            + choices[currentIndex[0]]
+                            + " hour");
+
+            staleMillis =
+                    choices[currentIndex[0]]
+                            * 60L
+                            * 60L
+                            * 1000L;
+
+            staleMinus.setOnClickListener(v -> {
+
+                if (currentIndex[0] > 0) {
+
+                    currentIndex[0]--;
+
+                    staleMillis =
+                            choices[currentIndex[0]]
+                                    * 60L
+                                    * 60L
+                                    * 1000L;
+
+                    staleHoursText.setText(
+                            "Stale Time: "
+                                    + choices[currentIndex[0]]
+                                    + " hour");
+                }
+            });
+
+            stalePlus.setOnClickListener(v -> {
+
+                if (currentIndex[0] < choices.length - 1) {
+
+                    currentIndex[0]++;
+
+                    staleMillis =
+                            choices[currentIndex[0]]
+                                    * 60L
+                                    * 60L
+                                    * 1000L;
+
+                    staleHoursText.setText(
+                            "Stale Time: "
+                                    + choices[currentIndex[0]]
+                                    + " hour");
+                }
+            });
+
             templatePane = new PaneBuilder(paneView)
                     .setMetaValue(Pane.RELATIVE_LOCATION, Pane.Location.Default)
                     .setMetaValue(Pane.PREFERRED_WIDTH_RATIO, 0.5D)
@@ -497,5 +582,99 @@ public class PluginTemplate implements IPlugin {
         if (!uiService.isPaneVisible(templatePane)) {
             uiService.showPane(templatePane, null);
         }
+
+        refreshAprsPane();
+    }
+
+    private void removeStaleStations() {
+
+
+    long now =
+            System.currentTimeMillis();
+
+    boolean changed = false;
+
+    Iterator<HashMap.Entry<String, Long>> it =
+            lastHeard.entrySet().iterator();
+
+    while (it.hasNext()) {
+
+        HashMap.Entry<String, Long> entry =
+                it.next();
+
+        if (now - entry.getValue() > staleMillis) {
+
+            String oldCall =
+                    entry.getKey();
+
+            Marker oldMarker =
+                    aprsMarkers.get(oldCall);
+
+            if (oldMarker != null &&
+                    aprsGroup != null) {
+
+                aprsGroup.removeItem(oldMarker);
+            }
+
+            aprsMarkers.remove(oldCall);
+            stationComments.remove(oldCall);
+
+            Log.d(TAG,
+                    "Removed stale station "
+                            + oldCall);
+
+            it.remove();
+
+            changed = true;
+        }
+    }
+
+    if (changed) {
+        refreshAprsPane();
+    }
+}
+
+    private void refreshAprsPane() {
+
+        if (aprsTextView == null)
+            return;
+
+        StringBuilder sb = new StringBuilder();
+
+        long now = System.currentTimeMillis();
+
+        for (String call : stationComments.keySet()) {
+
+            Long heard = lastHeard.get(call);
+
+            String age = "?";
+
+            if (heard != null) {
+
+                long minutes =
+                        (now - heard) / 60000;
+
+                if (minutes < 60) {
+
+                    age = minutes + "m";
+
+                } else {
+
+                    age = (minutes / 60) + "h";
+                }
+            }
+
+            sb.append(call)
+                    .append("   ")
+                    .append(age)
+                    .append(" ago")
+                    .append("\n")
+                    .append(stationComments.get(call))
+                    .append("\n\n");
+        }
+
+        aprsTextView.setText(sb.toString());
+
+        Log.d(TAG, "APRS pane refreshed");
     }
 }
