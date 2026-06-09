@@ -57,6 +57,8 @@ public class PluginTemplate implements IPlugin {
     private MapGroup aprsGroup;
     private final HashMap<String, Marker> aprsMarkers = new HashMap<>();
     private final HashMap<String, String> stationComments = new HashMap<>();
+    private final HashMap<String, String> aprsSymbols =
+            new HashMap<>();
 
     public PluginTemplate(IServiceController serviceController) {
         this.serviceController = serviceController;
@@ -158,11 +160,58 @@ public class PluginTemplate implements IPlugin {
 
                 Location loc = intent.getParcelableExtra("location");
 
-                String callsign = intent.getStringExtra("callsign");
+                if ("org.aprsdroid.app.HUD".equals(intent.getAction())) {
 
-                if (callsign == null) {
-                    callsign = intent.getStringExtra("source");
+                    int latRaw =
+                            intent.getIntExtra(
+                                    "org.aprsdroid.app.LOCATION_LAT",
+                                    Integer.MIN_VALUE);
+
+                    int lonRaw =
+                            intent.getIntExtra(
+                                    "org.aprsdroid.app.LOCATION_LON",
+                                    Integer.MIN_VALUE);
+
+                    if (latRaw != Integer.MIN_VALUE &&
+                            lonRaw != Integer.MIN_VALUE) {
+
+                        loc = new Location("HUD");
+
+                        loc.setLatitude(
+                                latRaw / 1000000.0);
+
+                        loc.setLongitude(
+                                lonRaw / 1000000.0);
+
+                        Log.d(TAG,
+                                "HUD LOCATION="
+                                        + loc.getLatitude()
+                                        + ","
+                                        + loc.getLongitude());
+                    }
                 }
+
+                String callsign = null;
+
+                if ("org.aprsdroid.app.HUD".equals(intent.getAction())) {
+
+                    callsign =
+                            intent.getStringExtra(
+                                    "org.aprsdroid.app.CALLSIGN");
+
+                } else {
+
+                    callsign =
+                            intent.getStringExtra("callsign");
+
+                    if (callsign == null) {
+                        callsign =
+                                intent.getStringExtra("source");
+                    }
+                }
+
+                Log.d(TAG,
+                        "CALLSIGN=[" + callsign + "]");
 
                 String packet = intent.getStringExtra("status");
 
@@ -170,8 +219,61 @@ public class PluginTemplate implements IPlugin {
                     packet = intent.getStringExtra("packet");
                 }
 
-                String aprsSymbol = getAprsSymbol(packet);
+                String aprsSymbol = null;
 
+                if ("org.aprsdroid.app.HUD".equals(intent.getAction())) {
+
+                    aprsSymbol =
+                            intent.getStringExtra(
+                                    "org.aprsdroid.app.SYMBOL");
+
+                    Log.d(TAG,
+                            "HUD SYMBOL="
+                                    + aprsSymbol);
+
+                    if (callsign != null &&
+                            aprsSymbol != null &&
+                            !aprsSymbol.isEmpty()) {
+
+                        aprsSymbols.put(
+                                callsign,
+                                aprsSymbol);
+
+                        Log.d(TAG,
+                                "STORED HUD SYMBOL "
+                                        + callsign
+                                        + " = "
+                                        + aprsSymbol);
+                    }
+                }
+
+                    if (aprsSymbol == null) {
+
+                        if (callsign != null &&
+                                aprsSymbols.containsKey(callsign)) {
+
+                            aprsSymbol = aprsSymbols.get(callsign);
+
+                            Log.d(TAG,
+                                    "USING STORED HUD SYMBOL "
+                                            + callsign
+                                            + " = "
+                                            + aprsSymbol);
+
+                        } else {
+
+                            aprsSymbol = getAprsSymbol(packet);
+
+                            Log.d(TAG,
+                                    "NO HUD SYMBOL AVAILABLE, PARSING PACKET");
+                        }
+                    }
+
+                Log.d(TAG,
+                        "FINAL SYMBOL FOR "
+                                + callsign
+                                + " = "
+                                + aprsSymbol);
 
                 Log.d(TAG, "RAW SYMBOL=[" + aprsSymbol + "]");
 
@@ -186,9 +288,20 @@ public class PluginTemplate implements IPlugin {
 
                 Log.d(TAG, "CALLSIGN=[" + callsign + "]");
                 Log.d(TAG, "PACKET=[" + packet + "]");
+
                 String comment = "";
 
-                if (packet != null) {
+                if ("org.aprsdroid.app.HUD".equals(intent.getAction())) {
+
+                    comment =
+                            intent.getStringExtra(
+                                    "org.aprsdroid.app.COMMENT");
+
+                    if (comment == null) {
+                        comment = "";
+                    }
+
+                } else if (packet != null) {
 
                     int pos = packet.indexOf(":=");
 
@@ -214,13 +327,13 @@ public class PluginTemplate implements IPlugin {
 
                         } else {
 
-                            // no altitude field
                             if (body.length() > 19) {
                                 comment = body.substring(19).trim();
                             }
                         }
                     }
                 }
+
                 Log.d(TAG, "CALLSIGN=[" + callsign + "]");
                 Log.d(TAG, "COMMENT=[" + comment + "]");
                 Log.d(TAG, "COMMENT=[" + comment + "]");
@@ -313,10 +426,38 @@ public class PluginTemplate implements IPlugin {
                         Log.d(TAG, "Created marker " + callsign);
 
                     } else {
-                        // Update existing marker
+
                         marker.setPoint(new GeoPoint(lat, lon));
                         marker.setTitle(callsign);
                         marker.setSummary(comment);
+
+                        if (aprsSymbol != null) {
+
+                            String normalizedSymbol =
+                                    normalizeAprsSymbol(aprsSymbol);
+
+                            int drawable =
+                                    getAprsDrawable(normalizedSymbol);
+
+                            String iconUri =
+                                    "android.resource://"
+                                            + pluginContext.getPackageName()
+                                            + "/"
+                                            + drawable;
+
+                            Icon icon = new Icon.Builder()
+                                    .setImageUri(0, iconUri)
+                                    .setSize(32, 32)
+                                    .build();
+
+                            marker.setIcon(icon);
+
+                            Log.d(TAG,
+                                    "UPDATED ICON "
+                                            + callsign
+                                            + " SYMBOL="
+                                            + normalizedSymbol);
+                        }
 
                         Log.d(TAG, "Updated marker " + callsign);
                     }
@@ -328,6 +469,7 @@ public class PluginTemplate implements IPlugin {
         filter.addAction("org.aprsdroid.app.POSITION");
         filter.addAction("org.aprsdroid.app.UPDATE");
         filter.addAction("org.aprsdroid.app.MESSAGE");
+        filter.addAction("org.aprsdroid.app.HUD");
 
         pluginContext.registerReceiver(aprsReceiver, filter, Context.RECEIVER_EXPORTED);
         Log.d(TAG, "APRS receiver registered");
@@ -354,7 +496,19 @@ public void onStop() {
 
     private int getAprsDrawable(String aprsSymbol) {
 
+        if (aprsSymbol == null) {
+
+            Log.e(TAG,
+                    "NULL APRS SYMBOL in getAprsDrawable()");
+
+            aprsSymbol = "/>";
+        }
+
         int index = getAprsIndex(aprsSymbol);
+
+        if (index < 0) {
+            index = 0;
+        }
 
         String resourceName;
 
@@ -376,6 +530,11 @@ public void onStop() {
                     "aprs_t2_symbol_%02d",
                     index);
         }
+
+        Log.d(TAG,
+                "DRAWABLE REQUEST SYMBOL=["
+                        + aprsSymbol
+                        + "]");
 
         int drawableId = pluginContext.getResources()
                 .getIdentifier(
@@ -455,10 +614,25 @@ public void onStop() {
             return null;
         }
 
-        char table = body.charAt(9);
-        char symbol = body.charAt(19);
+// Timestamped positions
+        if (body.startsWith("@") || body.startsWith("/")) {
 
-        return "" + table + symbol;
+            char table = body.charAt(17);
+            char symbol = body.charAt(27);
+
+            return "" + table + symbol;
+        }
+
+// Normal position reports
+        if (body.startsWith("!") || body.startsWith("=")) {
+
+            char table = body.charAt(9);
+            char symbol = body.charAt(19);
+
+            return "" + table + symbol;
+        }
+
+        return null;
     }
 
 
