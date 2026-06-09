@@ -76,7 +76,7 @@ public class PluginTemplate implements IPlugin {
         toolbarItem = new ToolbarItem.Builder(
                 pluginContext.getString(R.string.app_name),
                 MarshalManager.marshal(
-                        pluginContext.getResources().getDrawable(R.drawable.ic_launcher),
+                        pluginContext.getResources().getDrawable(R.drawable.plugin_icon),
                         android.graphics.drawable.Drawable.class,
                         gov.tak.api.commons.graphics.Bitmap.class))
                 .setListener(new ToolbarItemAdapter() {
@@ -275,6 +275,14 @@ public class PluginTemplate implements IPlugin {
                                 + " = "
                                 + aprsSymbol);
 
+                if (aprsSymbol == null || aprsSymbol.length() < 2) {
+
+                    aprsSymbol = "/>";
+
+                    Log.e(TAG,
+                            "NULL APRS SYMBOL - USING DEFAULT />");
+                }
+
                 Log.d(TAG, "RAW SYMBOL=[" + aprsSymbol + "]");
 
                 String normalized = normalizeAprsSymbol(aprsSymbol);
@@ -398,15 +406,9 @@ public class PluginTemplate implements IPlugin {
 
                         Log.d(TAG, "ICON URI=" + uri);
 
-                        Log.d(TAG,
-                                "TABLE=" + normalizeAprsSymbol(aprsSymbol).charAt(0)
-                                        + " SYMBOL_CHAR=" + normalizeAprsSymbol(aprsSymbol).charAt(1)
-                                        + " ASCII=" + (int)normalizeAprsSymbol(aprsSymbol).charAt(1)
-                                        + " INDEX=" + getAprsIndex(normalizeAprsSymbol(aprsSymbol)));
-
                         Icon icon = new Icon.Builder()
                                 .setImageUri(0, uri)
-                                .setSize(32, 32)
+                                .setSize(48, 48)
                                 .build();
 
                         marker.setIcon(icon);
@@ -414,9 +416,29 @@ public class PluginTemplate implements IPlugin {
                         Log.d(TAG, "ICON OBJECT = " + marker.getIcon());
 
                         marker.setTitle(callsign);
-                        marker.setSummary(comment);
+                        marker.setSummary("");
+
+// Show only callsign on map
                         marker.setShowLabel(true);
-                        marker.setAlwaysShowText(true);
+                        marker.setAlwaysShowText(false);
+
+                        Log.d(TAG,
+                                "LABEL TEST title="
+                                        + marker.getTitle()
+                                        + " summary="
+                                        + marker.getSummary());
+
+                        Log.d(TAG,
+                                "META callsign="
+                                        + marker.getMetaString("callsign", "NULL"));
+
+                        Log.d(TAG,
+                                "META title="
+                                        + marker.getMetaString("title", "NULL"));
+
+                        Log.d(TAG,
+                                "META remarks="
+                                        + marker.getMetaString("remarks", "NULL"));
 
                         if (aprsGroup != null) {
                             aprsGroup.addItem(marker);
@@ -427,9 +449,16 @@ public class PluginTemplate implements IPlugin {
 
                     } else {
 
+                        // Update existing marker
                         marker.setPoint(new GeoPoint(lat, lon));
                         marker.setTitle(callsign);
-                        marker.setSummary(comment);
+                        marker.setSummary("");
+
+                        // Keep label behavior consistent
+                        marker.setShowLabel(true);
+                        marker.setAlwaysShowText(false);
+
+                        Log.d(TAG, "Updated marker " + callsign);
 
                         if (aprsSymbol != null) {
 
@@ -447,7 +476,7 @@ public class PluginTemplate implements IPlugin {
 
                             Icon icon = new Icon.Builder()
                                     .setImageUri(0, iconUri)
-                                    .setSize(32, 32)
+                                    .setSize(48, 48)
                                     .build();
 
                             marker.setIcon(icon);
@@ -570,6 +599,18 @@ public void onStop() {
         char overlay = symbol.charAt(0);
         char base = symbol.charAt(1);
 
+        // APRSdroid sends I# for digi/iGate.
+        // Force it to primary-table #.
+        if (overlay == 'I' && base == '#') {
+
+            Log.d(TAG,
+                    "Converting "
+                            + symbol
+                            + " to /#");
+
+            return "/#";
+        }
+
         if ((overlay >= 'A' && overlay <= 'Z')
                 || (overlay >= '0' && overlay <= '9')) {
 
@@ -582,16 +623,6 @@ public void onStop() {
                             + converted);
 
             return converted;
-        }
-
-        if (overlay == 'I' && base == '#') {
-
-            Log.d(TAG,
-                    "Converting "
-                            + symbol
-                            + " to /#");
-
-            return "/#";
         }
 
         return symbol;

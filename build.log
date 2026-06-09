@@ -1,0 +1,657 @@
+
+> Configure project :app
+Configuring Offline TakDev plugin build
+Warning: local test files not found. Skipping connected tests.
+skipping user manual generation
+versionName[git]: 149e0098
+version[git]: 1780984511
+versionName[git]: 149e0098
+WARNING: Using flatDir should be avoided because it doesn't support any meta-data formats.
+
+> Task :app:preBuild UP-TO-DATE
+
+> Task :app:preCivDebugBuild
+augment the proguard file with the atak core rules
+> Task :app:mergeCivDebugNativeDebugMetadata NO-SOURCE
+> Task :app:generateCivDebugBuildConfig UP-TO-DATE
+> Task :app:javaPreCompileCivDebug UP-TO-DATE
+> Task :app:checkCivDebugAarMetadata UP-TO-DATE
+> Task :app:processCivDebugNavigationResources UP-TO-DATE
+> Task :app:compileCivDebugNavigationResources UP-TO-DATE
+> Task :app:generateCivDebugResValues UP-TO-DATE
+> Task :app:mapCivDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateCivDebugResources UP-TO-DATE
+> Task :app:mergeCivDebugResources UP-TO-DATE
+> Task :app:packageCivDebugResources UP-TO-DATE
+> Task :app:parseCivDebugLocalResources UP-TO-DATE
+> Task :app:createCivDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksCivDebug UP-TO-DATE
+> Task :app:processCivDebugMainManifest UP-TO-DATE
+> Task :app:processCivDebugManifest UP-TO-DATE
+> Task :app:processCivDebugManifestForPackage UP-TO-DATE
+> Task :app:processCivDebugResources UP-TO-DATE
+
+> Task :app:compileCivDebugJavaWithJavac FAILED
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:477: error: ';' expected
+            }
+             ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:481: error: <identifier> expected
+        filter.addAction("org.aprsdroid.app.POSITION");
+                        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:481: error: illegal start of type
+        filter.addAction("org.aprsdroid.app.POSITION");
+                         ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:482: error: <identifier> expected
+        filter.addAction("org.aprsdroid.app.UPDATE");
+                        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:482: error: illegal start of type
+        filter.addAction("org.aprsdroid.app.UPDATE");
+                         ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:483: error: <identifier> expected
+        filter.addAction("org.aprsdroid.app.MESSAGE");
+                        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:483: error: illegal start of type
+        filter.addAction("org.aprsdroid.app.MESSAGE");
+                         ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:484: error: <identifier> expected
+        filter.addAction("org.aprsdroid.app.HUD");
+                        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:484: error: illegal start of type
+        filter.addAction("org.aprsdroid.app.HUD");
+                         ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:486: error: <identifier> expected
+        pluginContext.registerReceiver(aprsReceiver, filter, Context.RECEIVER_EXPORTED);
+                                      ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:486: error: <identifier> expected
+        pluginContext.registerReceiver(aprsReceiver, filter, Context.RECEIVER_EXPORTED);
+                                                   ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:486: error: <identifier> expected
+        pluginContext.registerReceiver(aprsReceiver, filter, Context.RECEIVER_EXPORTED);
+                                                           ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:486: error: <identifier> expected
+        pluginContext.registerReceiver(aprsReceiver, filter, Context.RECEIVER_EXPORTED);
+                                                                                      ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:487: error: <identifier> expected
+        Log.d(TAG, "APRS receiver registered");
+             ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:487: error: <identifier> expected
+        Log.d(TAG, "APRS receiver registered");
+                 ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:487: error: illegal start of type
+        Log.d(TAG, "APRS receiver registered");
+                   ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:491: error: class, interface, enum, or record expected
+public void onStop() {
+       ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:495: error: class, interface, enum, or record expected
+    cleanupHandler.removeCallbacks(cleanupRunnable);
+    ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:497: error: class, interface, enum, or record expected
+    if (uiService != null) {
+    ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:499: error: class, interface, enum, or record expected
+    }
+    ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:504: error: class, interface, enum, or record expected
+        } catch (Exception ignored) {}
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:516: error: class, interface, enum, or record expected
+            aprsSymbol = "/>";
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:517: error: class, interface, enum, or record expected
+        }
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:521: error: class, interface, enum, or record expected
+        if (index < 0) {
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:523: error: class, interface, enum, or record expected
+        }
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:527: error: class, interface, enum, or record expected
+        if (aprsSymbol.startsWith("/")) {
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:533: error: class, interface, enum, or record expected
+        } else if (aprsSymbol.startsWith("\\")) {
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:539: error: class, interface, enum, or record expected
+        } else {
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:544: error: class, interface, enum, or record expected
+        }
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:551: error: class, interface, enum, or record expected
+        int drawableId = pluginContext.getResources()
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:557: error: class, interface, enum, or record expected
+        Log.d(TAG,
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:563: error: class, interface, enum, or record expected
+        return drawableId;
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:564: error: class, interface, enum, or record expected
+    }
+    ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:569: error: class, interface, enum, or record expected
+        }
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:573: error: class, interface, enum, or record expected
+        return symbol.charAt(1) - 33;
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:574: error: class, interface, enum, or record expected
+    }
+    ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:582: error: class, interface, enum, or record expected
+        char overlay = symbol.charAt(0);
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:583: error: class, interface, enum, or record expected
+        char base = symbol.charAt(1);
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:587: error: class, interface, enum, or record expected
+        if (overlay == 'I' && base == '#') {
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:594: error: class, interface, enum, or record expected
+            return "/#";
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:595: error: class, interface, enum, or record expected
+        }
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:602: error: class, interface, enum, or record expected
+            Log.d(TAG,
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:608: error: class, interface, enum, or record expected
+            return converted;
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:609: error: class, interface, enum, or record expected
+        }
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:612: error: class, interface, enum, or record expected
+    }
+    ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:617: error: class, interface, enum, or record expected
+        }
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:621: error: class, interface, enum, or record expected
+        if (pos < 0) {
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:623: error: class, interface, enum, or record expected
+        }
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:627: error: class, interface, enum, or record expected
+        if (body.length() < 20) {
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:629: error: class, interface, enum, or record expected
+        }
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:635: error: class, interface, enum, or record expected
+            char symbol = body.charAt(27);
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:637: error: class, interface, enum, or record expected
+            return "" + table + symbol;
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:638: error: class, interface, enum, or record expected
+        }
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:644: error: class, interface, enum, or record expected
+            char symbol = body.charAt(19);
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:646: error: class, interface, enum, or record expected
+            return "" + table + symbol;
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:647: error: class, interface, enum, or record expected
+        }
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:650: error: class, interface, enum, or record expected
+    }
+    ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:658: error: class, interface, enum, or record expected
+        }
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:665: error: class, interface, enum, or record expected
+            case "/[":
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:668: error: class, interface, enum, or record expected
+            case "/>":
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:671: error: class, interface, enum, or record expected
+            case "/_":
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:674: error: class, interface, enum, or record expected
+            case "/#":
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:677: error: class, interface, enum, or record expected
+            default:
+                   ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:679: error: class, interface, enum, or record expected
+        }
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:689: error: class, interface, enum, or record expected
+            return "asset:///aprs/table0/symbol_00.png";
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:690: error: class, interface, enum, or record expected
+        }
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:694: error: class, interface, enum, or record expected
+        if (index < 0) {
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:701: error: class, interface, enum, or record expected
+            index = 0;
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:702: error: class, interface, enum, or record expected
+        }
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:710: error: class, interface, enum, or record expected
+        } else if (aprsSymbol.startsWith("\\")) {
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:716: error: class, interface, enum, or record expected
+        } else {
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:721: error: class, interface, enum, or record expected
+        }
+        ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:724: error: class, interface, enum, or record expected
+    private static final String PREF_STALE_HOURS = "aprs_stale_hours";
+                         ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:726: error: class, interface, enum, or record expected
+    private long staleMillis = 60 * 60 * 1000;
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:728: error: class, interface, enum, or record expected
+    private final Handler cleanupHandler =
+                  ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:731: error: class, interface, enum, or record expected
+private final Runnable cleanupRunnable =
+              ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:734: error: class, interface, enum, or record expected
+            public void run() {
+                   ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:737: error: class, interface, enum, or record expected
+                refreshAprsPane();
+                ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:739: error: class, interface, enum, or record expected
+                cleanupHandler.postDelayed(
+                ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:742: error: class, interface, enum, or record expected
+            }
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:746: error: class, interface, enum, or record expected
+    private void showPane() {
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:754: error: class, interface, enum, or record expected
+            aprsTextView = paneView.findViewById(R.id.aprsText);
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:756: error: class, interface, enum, or record expected
+            Button staleMinus =
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:759: error: class, interface, enum, or record expected
+            Button stalePlus =
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:762: error: class, interface, enum, or record expected
+            TextView staleHoursText =
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:765: error: class, interface, enum, or record expected
+            final int[] choices = {1, 2, 4, 8, 12, 24};
+                  ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:767: error: class, interface, enum, or record expected
+            AtakPreferences prefs =
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:771: error: class, interface, enum, or record expected
+            Log.e(TAG,
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:776: error: class, interface, enum, or record expected
+            Log.e(TAG,
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:780: error: class, interface, enum, or record expected
+            int savedHours =
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:785: error: class, interface, enum, or record expected
+            Log.e(TAG,
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:790: error: class, interface, enum, or record expected
+            final int[] currentIndex = {0};
+                  ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:791: error: class, interface, enum, or record expected
+            for (int i = 0; i < choices.length; i++) {
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:791: error: class, interface, enum, or record expected
+            for (int i = 0; i < choices.length; i++) {
+                            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:791: error: class, interface, enum, or record expected
+            for (int i = 0; i < choices.length; i++) {
+                                                ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:794: error: class, interface, enum, or record expected
+                    break;
+                    ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:795: error: class, interface, enum, or record expected
+                }
+                ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:802: error: class, interface, enum, or record expected
+            staleHoursText.setText(
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:807: error: class, interface, enum, or record expected
+            staleMinus.setOnClickListener(v -> {
+            ^
+/home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:813: error: class, interface, enum, or record expected
+                    staleMillis =
+                    ^
+100 errors
+
+[Incubating] Problems report is available at: file:///home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileCivDebugJavaWithJavac'.
+> Compilation failed; see the compiler output below.
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:491: error: class, interface, enum, or record expected
+  public void onStop() {
+         ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:495: error: class, interface, enum, or record expected
+      cleanupHandler.removeCallbacks(cleanupRunnable);
+      ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:497: error: class, interface, enum, or record expected
+      if (uiService != null) {
+      ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:499: error: class, interface, enum, or record expected
+      }
+      ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:504: error: class, interface, enum, or record expected
+          } catch (Exception ignored) {}
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:516: error: class, interface, enum, or record expected
+              aprsSymbol = "/>";
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:517: error: class, interface, enum, or record expected
+          }
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:521: error: class, interface, enum, or record expected
+          if (index < 0) {
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:523: error: class, interface, enum, or record expected
+          }
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:527: error: class, interface, enum, or record expected
+          if (aprsSymbol.startsWith("/")) {
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:533: error: class, interface, enum, or record expected
+          } else if (aprsSymbol.startsWith("\\")) {
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:539: error: class, interface, enum, or record expected
+          } else {
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:544: error: class, interface, enum, or record expected
+          }
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:551: error: class, interface, enum, or record expected
+          int drawableId = pluginContext.getResources()
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:557: error: class, interface, enum, or record expected
+          Log.d(TAG,
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:563: error: class, interface, enum, or record expected
+          return drawableId;
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:564: error: class, interface, enum, or record expected
+      }
+      ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:569: error: class, interface, enum, or record expected
+          }
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:573: error: class, interface, enum, or record expected
+          return symbol.charAt(1) - 33;
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:574: error: class, interface, enum, or record expected
+      }
+      ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:582: error: class, interface, enum, or record expected
+          char overlay = symbol.charAt(0);
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:583: error: class, interface, enum, or record expected
+          char base = symbol.charAt(1);
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:587: error: class, interface, enum, or record expected
+          if (overlay == 'I' && base == '#') {
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:594: error: class, interface, enum, or record expected
+              return "/#";
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:595: error: class, interface, enum, or record expected
+          }
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:602: error: class, interface, enum, or record expected
+              Log.d(TAG,
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:608: error: class, interface, enum, or record expected
+              return converted;
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:609: error: class, interface, enum, or record expected
+          }
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:612: error: class, interface, enum, or record expected
+      }
+      ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:617: error: class, interface, enum, or record expected
+          }
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:621: error: class, interface, enum, or record expected
+          if (pos < 0) {
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:623: error: class, interface, enum, or record expected
+          }
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:627: error: class, interface, enum, or record expected
+          if (body.length() < 20) {
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:629: error: class, interface, enum, or record expected
+          }
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:635: error: class, interface, enum, or record expected
+              char symbol = body.charAt(27);
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:637: error: class, interface, enum, or record expected
+              return "" + table + symbol;
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:638: error: class, interface, enum, or record expected
+          }
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:644: error: class, interface, enum, or record expected
+              char symbol = body.charAt(19);
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:646: error: class, interface, enum, or record expected
+              return "" + table + symbol;
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:647: error: class, interface, enum, or record expected
+          }
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:650: error: class, interface, enum, or record expected
+      }
+      ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:658: error: class, interface, enum, or record expected
+          }
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:665: error: class, interface, enum, or record expected
+              case "/[":
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:668: error: class, interface, enum, or record expected
+              case "/>":
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:671: error: class, interface, enum, or record expected
+              case "/_":
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:674: error: class, interface, enum, or record expected
+              case "/#":
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:677: error: class, interface, enum, or record expected
+              default:
+                     ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:679: error: class, interface, enum, or record expected
+          }
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:689: error: class, interface, enum, or record expected
+              return "asset:///aprs/table0/symbol_00.png";
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:690: error: class, interface, enum, or record expected
+          }
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:694: error: class, interface, enum, or record expected
+          if (index < 0) {
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:701: error: class, interface, enum, or record expected
+              index = 0;
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:702: error: class, interface, enum, or record expected
+          }
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:710: error: class, interface, enum, or record expected
+          } else if (aprsSymbol.startsWith("\\")) {
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:716: error: class, interface, enum, or record expected
+          } else {
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:721: error: class, interface, enum, or record expected
+          }
+          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:724: error: class, interface, enum, or record expected
+      private static final String PREF_STALE_HOURS = "aprs_stale_hours";
+                           ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:726: error: class, interface, enum, or record expected
+      private long staleMillis = 60 * 60 * 1000;
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:728: error: class, interface, enum, or record expected
+      private final Handler cleanupHandler =
+                    ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:731: error: class, interface, enum, or record expected
+  private final Runnable cleanupRunnable =
+                ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:734: error: class, interface, enum, or record expected
+              public void run() {
+                     ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:737: error: class, interface, enum, or record expected
+                  refreshAprsPane();
+                  ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:739: error: class, interface, enum, or record expected
+                  cleanupHandler.postDelayed(
+                  ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:742: error: class, interface, enum, or record expected
+              }
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:746: error: class, interface, enum, or record expected
+      private void showPane() {
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:754: error: class, interface, enum, or record expected
+              aprsTextView = paneView.findViewById(R.id.aprsText);
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:756: error: class, interface, enum, or record expected
+              Button staleMinus =
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:759: error: class, interface, enum, or record expected
+              Button stalePlus =
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:762: error: class, interface, enum, or record expected
+              TextView staleHoursText =
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:765: error: class, interface, enum, or record expected
+              final int[] choices = {1, 2, 4, 8, 12, 24};
+                    ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:767: error: class, interface, enum, or record expected
+              AtakPreferences prefs =
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:771: error: class, interface, enum, or record expected
+              Log.e(TAG,
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:776: error: class, interface, enum, or record expected
+              Log.e(TAG,
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:780: error: class, interface, enum, or record expected
+              int savedHours =
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:785: error: class, interface, enum, or record expected
+              Log.e(TAG,
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:790: error: class, interface, enum, or record expected
+              final int[] currentIndex = {0};
+                    ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:791: error: class, interface, enum, or record expected
+              for (int i = 0; i < choices.length; i++) {
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:791: error: class, interface, enum, or record expected
+              for (int i = 0; i < choices.length; i++) {
+                              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:791: error: class, interface, enum, or record expected
+              for (int i = 0; i < choices.length; i++) {
+                                                  ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:794: error: class, interface, enum, or record expected
+                      break;
+                      ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:795: error: class, interface, enum, or record expected
+                  }
+                  ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:802: error: class, interface, enum, or record expected
+              staleHoursText.setText(
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:807: error: class, interface, enum, or record expected
+              staleMinus.setOnClickListener(v -> {
+              ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:813: error: class, interface, enum, or record expected
+                      staleMillis =
+                      ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:481: error: illegal start of type
+          filter.addAction("org.aprsdroid.app.POSITION");
+                           ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:482: error: illegal start of type
+          filter.addAction("org.aprsdroid.app.UPDATE");
+                           ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:483: error: illegal start of type
+          filter.addAction("org.aprsdroid.app.MESSAGE");
+                           ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:484: error: illegal start of type
+          filter.addAction("org.aprsdroid.app.HUD");
+                           ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:487: error: illegal start of type
+          Log.d(TAG, "APRS receiver registered");
+                     ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:477: error: ';' expected
+              }
+               ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:481: error: <identifier> expected
+          filter.addAction("org.aprsdroid.app.POSITION");
+                          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:482: error: <identifier> expected
+          filter.addAction("org.aprsdroid.app.UPDATE");
+                          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:483: error: <identifier> expected
+          filter.addAction("org.aprsdroid.app.MESSAGE");
+                          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:484: error: <identifier> expected
+          filter.addAction("org.aprsdroid.app.HUD");
+                          ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:486: error: <identifier> expected
+          pluginContext.registerReceiver(aprsReceiver, filter, Context.RECEIVER_EXPORTED);
+                                        ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:486: error: <identifier> expected
+          pluginContext.registerReceiver(aprsReceiver, filter, Context.RECEIVER_EXPORTED);
+                                                     ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:486: error: <identifier> expected
+          pluginContext.registerReceiver(aprsReceiver, filter, Context.RECEIVER_EXPORTED);
+                                                             ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:486: error: <identifier> expected
+          pluginContext.registerReceiver(aprsReceiver, filter, Context.RECEIVER_EXPORTED);
+                                                                                        ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:487: error: <identifier> expected
+          Log.d(TAG, "APRS receiver registered");
+               ^
+  /home/scott/Downloads/ATAK-CIV-5.6.0-SDK/samples/aprsimport/app/src/main/java/com/atakmap/android/plugintemplate/plugin/PluginTemplate.java:487: error: <identifier> expected
+          Log.d(TAG, "APRS receiver registered");
+                   ^
+  100 errors
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 1s
+19 actionable tasks: 2 executed, 17 up-to-date
