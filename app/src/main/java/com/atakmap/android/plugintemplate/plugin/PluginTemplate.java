@@ -40,6 +40,7 @@ import gov.tak.api.ui.ToolbarItemAdapter;
 import gov.tak.platform.marshal.MarshalManager;
 import android.os.Bundle;
 import com.atakmap.android.maps.MapDataRef;
+import android.widget.LinearLayout;
 public class PluginTemplate implements IPlugin {
 
     private static final String TAG = "APRSIMPORT";
@@ -51,6 +52,8 @@ public class PluginTemplate implements IPlugin {
     private Pane templatePane;
     private View paneView;
     private TextView aprsTextView;
+
+    private LinearLayout aprsList;
 
     private BroadcastReceiver aprsReceiver;
     private final HashMap<String, Long> lastHeard = new HashMap<>();
@@ -354,22 +357,7 @@ public class PluginTemplate implements IPlugin {
                         stationComments.put(callsign, comment);
                     }
 
-                    if (aprsTextView != null) {
-
-                        StringBuilder sb = new StringBuilder();
-
-                        for (String call : stationComments.keySet()) {
-
-                            sb.append(call)
-                                    .append("\n")
-                                    .append(stationComments.get(call))
-                                    .append("\n\n");
-                        }
-
-                        aprsTextView.setText(sb.toString());
-
-                        Log.d(TAG, "Updated APRS pane: " + callsign);
-                    }
+                    refreshAprsPane();
                 }
 
                 if (loc != null && callsign != null) {
@@ -420,7 +408,7 @@ public class PluginTemplate implements IPlugin {
 
 // Show only callsign on map
                         marker.setShowLabel(true);
-                        marker.setAlwaysShowText(false);
+                        marker.setAlwaysShowText(true);
 
                         Log.d(TAG,
                                 "LABEL TEST title="
@@ -456,7 +444,7 @@ public class PluginTemplate implements IPlugin {
 
                         // Keep label behavior consistent
                         marker.setShowLabel(true);
-                        marker.setAlwaysShowText(false);
+                        marker.setAlwaysShowText(true);
 
                         Log.d(TAG, "Updated marker " + callsign);
 
@@ -768,7 +756,7 @@ private final Runnable cleanupRunnable =
                     R.layout.main_layout,
                     null);
 
-            aprsTextView = paneView.findViewById(R.id.aprsText);
+            aprsList = paneView.findViewById(R.id.aprsList);
 
             Button staleMinus =
                     paneView.findViewById(R.id.staleMinus);
@@ -961,14 +949,22 @@ private final Runnable cleanupRunnable =
 
     private void refreshAprsPane() {
 
-        if (aprsTextView == null)
+        if (aprsList == null)
             return;
 
-        StringBuilder sb = new StringBuilder();
+        aprsList.removeAllViews();
 
         long now = System.currentTimeMillis();
 
-        for (String call : stationComments.keySet()) {
+        java.util.List<String> stations =
+                new java.util.ArrayList<>(stationComments.keySet());
+
+        stations.sort((a, b) ->
+                Long.compare(
+                        lastHeard.getOrDefault(b, 0L),
+                        lastHeard.getOrDefault(a, 0L)));
+
+        for (String call : stations) {
 
             Long heard = lastHeard.get(call);
 
@@ -976,29 +972,52 @@ private final Runnable cleanupRunnable =
 
             if (heard != null) {
 
-                long minutes =
-                        (now - heard) / 60000;
+                long minutes = (now - heard) / 60000;
 
                 if (minutes < 60) {
-
                     age = minutes + "m";
-
                 } else {
-
                     age = (minutes / 60) + "h";
                 }
             }
 
-            sb.append(call)
-                    .append("   ")
-                    .append(age)
-                    .append(" ago")
-                    .append("\n")
-                    .append(stationComments.get(call))
-                    .append("\n\n");
+            TextView row = new TextView(pluginContext);
+
+            row.setText(
+                    call
+                            + "   "
+                            + age
+                            + " ago\n"
+                            + stationComments.get(call));
+
+            row.setTextSize(16);
+
+            row.setPadding(8, 8, 8, 16);
+
+            row.setClickable(true);
+
+            row.setOnClickListener(v -> {
+
+                Marker marker = aprsMarkers.get(call);
+
+                if (marker != null) {
+
+                    Log.d(TAG,
+                            "CENTERING ON "
+                                    + call);
+
+                    MapView.getMapView()
+                            .getMapController()
+                            .panTo(
+                                    marker.getPoint(),
+                                    true);
+                }
+            });
+
+            aprsList.addView(row);
         }
 
-        aprsTextView.setText(sb.toString());
+        Log.d(TAG, "APRS pane refreshed");
 
         Log.d(TAG, "APRS pane refreshed");
     }

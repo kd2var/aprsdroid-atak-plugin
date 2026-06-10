@@ -38,13 +38,12 @@
 
 </LinearLayout>
 
-        <TextView
-            android:id="@+id/aprsText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Waiting for APRS traffic..."
-            android:textSize="16sp" />
+   <LinearLayout
+        android:id="@+id/aprsList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
 
-    </LinearLayout>
+</LinearLayout>
 
 </ScrollView>
