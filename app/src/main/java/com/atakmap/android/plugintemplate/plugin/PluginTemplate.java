@@ -62,6 +62,11 @@ public class PluginTemplate implements IPlugin {
     private final HashMap<String, String> stationComments = new HashMap<>();
     private final HashMap<String, String> aprsSymbols =
             new HashMap<>();
+    private final HashMap<String, String> stationAltitude = new HashMap<>();
+    private final HashMap<String, String> stationTemperature = new HashMap<>();
+    private final HashMap<String, String> stationWind = new HashMap<>();
+    private final HashMap<String, String> stationBarometer = new HashMap<>();
+    private final HashMap<String, String> stationHumidity = new HashMap<>();
 
     public PluginTemplate(IServiceController serviceController) {
         this.serviceController = serviceController;
@@ -344,6 +349,8 @@ public class PluginTemplate implements IPlugin {
                         }
                     }
                 }
+
+                comment = cleanAprsComment(callsign, comment);
 
                 Log.d(TAG, "CALLSIGN=[" + callsign + "]");
                 Log.d(TAG, "COMMENT=[" + comment + "]");
@@ -983,12 +990,55 @@ private final Runnable cleanupRunnable =
 
             TextView row = new TextView(pluginContext);
 
-            row.setText(
-                    call
-                            + "   "
-                            + age
-                            + " ago\n"
-                            + stationComments.get(call));
+            StringBuilder text = new StringBuilder();
+
+            text.append(call)
+                    .append("   ")
+                    .append(age)
+                    .append(" ago\n");
+
+            text.append(stationComments.get(call));
+
+            String altitude = stationAltitude.get(call);
+
+            if (altitude != null) {
+                text.append("\nAltitude: ")
+                        .append(altitude)
+                        .append(" ft");
+            }
+
+            String temp = stationTemperature.get(call);
+
+            if (temp != null) {
+                text.append("\nTemp: ")
+                        .append(temp)
+                        .append("°F");
+            }
+
+            String wind = stationWind.get(call);
+
+            if (wind != null) {
+                text.append("\nWind: ")
+                        .append(wind);
+            }
+
+            String baro = stationBarometer.get(call);
+
+            if (baro != null) {
+                text.append("\nBaro: ")
+                        .append(baro)
+                        .append(" mb");
+            }
+
+            String humidity = stationHumidity.get(call);
+
+            if (humidity != null) {
+                text.append("\nHumidity: ")
+                        .append(humidity)
+                        .append("%");
+            }
+
+            row.setText(text.toString());
 
             row.setTextSize(16);
 
@@ -1020,5 +1070,112 @@ private final Runnable cleanupRunnable =
         Log.d(TAG, "APRS pane refreshed");
 
         Log.d(TAG, "APRS pane refreshed");
+    }
+
+    private String cleanAprsComment(String callsign, String comment) {
+
+        if (comment == null)
+            return "";
+
+        comment = comment.trim();
+
+        //
+        // ALTITUDE
+        //
+        java.util.regex.Matcher alt =
+                java.util.regex.Pattern
+                        .compile("/?A=(-?\\d{5}|\\d{6})")
+                        .matcher(comment);
+
+        if (alt.find()) {
+
+            String altitude = alt.group(1);
+
+            try {
+                altitude = String.valueOf(Integer.parseInt(altitude));
+                stationAltitude.put(callsign, altitude);
+            } catch (Exception ignored) {
+            }
+
+            comment = alt.replaceAll("").trim();
+        }
+
+        //
+        // WEATHER
+        //
+
+        java.util.regex.Matcher temp =
+                java.util.regex.Pattern
+                        .compile("t(\\d{3})")
+                        .matcher(comment);
+
+        if (temp.find()) {
+            stationTemperature.put(callsign,
+                    String.valueOf(Integer.parseInt(temp.group(1))));
+        }
+
+        java.util.regex.Matcher wind =
+                java.util.regex.Pattern
+                        .compile("(\\d{3})/(\\d{3})g(\\d{3})")
+                        .matcher(comment);
+
+        if (wind.find()) {
+
+            stationWind.put(
+                    callsign,
+                    wind.group(1)
+                            + " deg @ "
+                            + Integer.parseInt(wind.group(2))
+                            + " mph");
+        }
+
+        java.util.regex.Matcher baro =
+                java.util.regex.Pattern
+                        .compile("b(\\d{5})")
+                        .matcher(comment);
+
+        if (baro.find()) {
+
+            stationBarometer.put(
+                    callsign,
+                    String.format("%.1f",
+                            Integer.parseInt(baro.group(1)) / 10.0));
+        }
+        java.util.regex.Matcher humidity =
+                java.util.regex.Pattern
+                        .compile("h(\\d{2,3})")
+                        .matcher(comment);
+
+        if (humidity.find()) {
+
+            stationHumidity.put(
+                    callsign,
+                    humidity.group(1));
+        }
+
+        //
+        // Remove weather block
+        //
+
+        comment = comment.replaceAll(
+                "^\\d{3}/\\d{3}g.{0,40}?b\\d{5}",
+                "").trim();
+
+        //
+        // Existing cleanup
+        //
+
+        comment = comment.replaceFirst("^PHG\\d{4,5}/?", "");
+        comment = comment.replaceFirst("^RNG\\d{4}/?", "");
+        comment = comment.replaceFirst("^DFS\\d{4}/?", "");
+
+        comment = comment.trim();
+
+        if (comment.matches("^[^A-Za-z0-9]{1,4}$")) {
+            return "";
+        }
+
+        return comment;
+
     }
 }
