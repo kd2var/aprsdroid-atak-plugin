@@ -1,37 +1,18 @@
-(Plugin Name)
+APRS Import Plugin for ATAK
 
+Purpose:
+Imports APRS stations from APRSdroid into ATAK as CoT objects.
 
-_________________________________________________________________
-PURPOSE AND CAPABILITIES
+Features:
+- APRSdroid integration
+- APRS iconset support
+- Custom APRS symbols
+- Station list pane
+- Center-on-station support
+- Configurable stale timer
 
-(General Description)
+Supported ATAK:
+5.6.0 CIV
 
-
-_________________________________________________________________
-STATUS
-
-(In Progress?  Expected release?  Released?  To Who?  When?)
-
-_________________________________________________________________
-POINT OF CONTACTS
-
-(Who is developing this)
-
-_________________________________________________________________
-PORTS REQUIRED
-
-(This is important for ATO, networking, and other security concerns)
-
-_________________________________________________________________
-EQUIPMENT REQUIRED
-
-_________________________________________________________________
-EQUIPMENT SUPPORTED
-
-_________________________________________________________________
-COMPILATION
-
-_________________________________________________________________
-DEVELOPER NOTES
-# aprsdroid-atak-plugin
-# aprsdroid-atak-plugin
+Known Issues:
+- Certain APRS overlay symbols may display incorrect icon mappings.
