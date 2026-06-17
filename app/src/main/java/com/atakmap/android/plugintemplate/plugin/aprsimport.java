@@ -33,7 +33,6 @@ import com.atakmap.android.icons.UserIconDatabase;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -49,7 +48,7 @@ import gov.tak.platform.marshal.MarshalManager;
 /**
  * APRS Import Plugin for ATAK - Cleaned & Fixed Version
  */
-public class PluginTemplate implements IPlugin {
+public class aprsimport implements IPlugin {
 
     private static final String TAG = "APRSIMPORT";
 
@@ -94,7 +93,7 @@ public class PluginTemplate implements IPlugin {
         }
     };
 
-    public PluginTemplate(IServiceController serviceController) {
+    public aprsimport(IServiceController serviceController) {
         this.serviceController = serviceController;
 
         final PluginContextProvider ctxProvider = serviceController.getService(PluginContextProvider.class);
