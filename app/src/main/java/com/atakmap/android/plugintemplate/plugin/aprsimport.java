@@ -35,6 +35,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
+import android.widget.Spinner;
+import android.widget.ScrollView;
 
 import gov.tak.api.plugin.IPlugin;
 import gov.tak.api.plugin.IServiceController;
@@ -58,7 +60,11 @@ public class aprsimport implements IPlugin {
     private ToolbarItem toolbarItem;
     private Pane templatePane;
     private View paneView;
+    private ScrollView scrollView;
     private LinearLayout aprsList;
+    private TextView aprsStatus;
+    private TextView detailsPlaceholder;
+    private AprsRadioController radioController;
 
     private BroadcastReceiver aprsReceiver;
 
@@ -101,6 +107,8 @@ public class aprsimport implements IPlugin {
             pluginContext = ctxProvider.getPluginContext();
             pluginContext.setTheme(R.style.ATAKPluginTheme);
             registerAprsIconSet();
+
+            radioController = new AprsRadioController(pluginContext);
         }
 
         uiService = serviceController.getService(IHostUIService.class);
@@ -416,10 +424,24 @@ public class aprsimport implements IPlugin {
         if (templatePane == null) {
             paneView = PluginLayoutInflater.inflate(pluginContext, R.layout.main_layout, null);
             aprsList = paneView.findViewById(R.id.aprsList);
+            detailsPlaceholder = paneView.findViewById(R.id.detailsPlaceholder);
 
             Button staleMinus = paneView.findViewById(R.id.staleMinus);
             Button stalePlus = paneView.findViewById(R.id.stalePlus);
             TextView staleHoursText = paneView.findViewById(R.id.staleHoursText);
+
+            Button startAprsButton = paneView.findViewById(R.id.startAprsButton);
+            Button stopAprsButton = paneView.findViewById(R.id.stopAprsButton);
+            Button beaconButton = paneView.findViewById(R.id.beaconButton);
+            Button newMessageButton = paneView.findViewById(R.id.newMessageButton);
+
+            scrollView = paneView.findViewById(R.id.aprsScrollView);
+            aprsList = paneView.findViewById(R.id.aprsList);
+
+            aprsStatus = paneView.findViewById(R.id.aprsStatus);
+            detailsPlaceholder = paneView.findViewById(R.id.detailsPlaceholder);
+
+            Spinner sortSpinner = paneView.findViewById(R.id.sortSpinner);
 
             final int[] choices = {1, 2, 4, 8, 12, 24};
             AtakPreferences prefs = new AtakPreferences(MapView.getMapView().getContext());
@@ -464,6 +486,63 @@ public class aprsimport implements IPlugin {
         staleMillis = choices[index] * 60L * 60L * 1000L;
         textView.setText("Stale Time: " + choices[index] + " hour");
         prefs.set(PREF_STALE_HOURS, choices[index]);
+    }
+
+    private void showStationDetails(String call) {
+
+        if (detailsPlaceholder == null)
+            return;
+
+        StringBuilder text = new StringBuilder();
+
+        text.append("Callsign: ").append(call);
+
+        MapItem item = MapView.getMapView().getRootGroup().deepFindUID("APRS-" + call);
+
+        if (item instanceof Marker && MapView.getMapView().getSelfMarker() != null) {
+
+            Marker marker = (Marker) item;
+
+            double meters = MapView.getMapView()
+                    .getSelfMarker()
+                    .getPoint()
+                    .distanceTo(marker.getPoint());
+
+            double miles = meters * 0.000621371;
+
+            text.append(String.format("\nDistance: %.1f mi", miles));
+        }
+
+        addIfNotEmpty(text, stationComments.get(call), "\nComment: ", "");
+        addIfNotEmpty(text, stationAltitude.get(call), "\nAltitude: ", " ft");
+        addIfNotEmpty(text, stationTemperature.get(call), "\nTemperature: ", "°F");
+        addIfNotEmpty(text, stationHumidity.get(call), "\nHumidity: ", "%");
+        addIfNotEmpty(text, stationBarometer.get(call), "\nBarometer: ", " mb");
+        addIfNotEmpty(text, stationWind.get(call), "\nWind: ", "");
+        addIfNotEmpty(text, stationCourse.get(call), "\nCourse: ", "°");
+        addIfNotEmpty(text, stationSpeed.get(call), "\nSpeed: ", " mph");
+
+        Long heard = lastHeard.get(call);
+
+        if (heard != null) {
+
+            long ageMinutes = (System.currentTimeMillis() - heard) / 60000;
+
+            long hrs = ageMinutes / 60;
+            long mins = ageMinutes % 60;
+
+            if (hrs > 0)
+                text.append("\nLast Heard: ").append(hrs).append(" hr ").append(mins).append(" min ago");
+            else
+                text.append("\nLast Heard: ").append(mins).append(" min ago");
+        }
+
+        detailsPlaceholder.setText(text.toString());
+
+        if (scrollView != null) {
+            scrollView.post(() ->
+                    scrollView.smoothScrollTo(0, detailsPlaceholder.getTop()));
+        }
     }
 
     private void refreshAprsPane() {
@@ -512,10 +591,15 @@ public class aprsimport implements IPlugin {
             row.setClickable(true);
 
             row.setOnClickListener(v -> {
+
                 MapItem cotItem = MapView.getMapView().getRootGroup().deepFindUID("APRS-" + call);
+
                 if (cotItem instanceof Marker) {
                     MapView.getMapView().getMapController().panTo(((Marker) cotItem).getPoint(), true);
                 }
+
+                showStationDetails(call);
+
             });
 
             aprsList.addView(row);

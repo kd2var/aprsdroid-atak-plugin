@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    android:id="@+id/aprsScrollView"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -10,40 +12,160 @@
         android:orientation="vertical"
         android:padding="10dp">
 
+        <!-- APRS RADIO -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="APRS RADIO"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="#FFC107"
+            android:layout_marginBottom="8dp"/>
+
         <LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:layout_marginBottom="8dp">
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="6dp">
 
-    <Button
-        android:id="@+id/staleMinus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="-" />
+            <Button
+                android:id="@+id/startAprsButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Start APRSdroid"/>
 
-    <TextView
-        android:id="@+id/staleHoursText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:text="Stale Time: 1 hour" />
+            <Space
+                android:layout_width="8dp"
+                android:layout_height="1dp"/>
 
-    <Button
-        android:id="@+id/stalePlus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="+" />
+            <Button
+                android:id="@+id/stopAprsButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Stop APRSdroid"/>
+        </LinearLayout>
 
-</LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
 
-   <LinearLayout
-        android:id="@+id/aprsList"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical" />
+            <Button
+                android:id="@+id/beaconButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Send Beacon"/>
 
-</LinearLayout>
+            <Space
+                android:layout_width="8dp"
+                android:layout_height="1dp"/>
+
+            <Button
+                android:id="@+id/newMessageButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="New Message"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/aprsStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Status: Unknown"
+            android:textStyle="bold"
+            android:textColor="#CCCCCC"
+            android:layout_marginBottom="10dp"/>
+
+        <!-- SORT -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SORT BY"
+            android:textStyle="bold"
+            android:textColor="#FFC107"/>
+
+        <Spinner
+            android:id="@+id/sortSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"/>
+
+        <!-- STALE TIME -->
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="10dp">
+
+            <Button
+                android:id="@+id/staleMinus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="-"/>
+
+            <TextView
+                android:id="@+id/staleHoursText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Stale Time: 1 Hour"/>
+
+            <Button
+                android:id="@+id/stalePlus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="+"/>
+
+        </LinearLayout>
+
+        <!-- STATION LIST -->
+
+        <TextView
+            android:id="@+id/stationListLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="STATION LIST"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="#FFC107"
+            android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:id="@+id/aprsList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- STATION DETAILS -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="STATION DETAILS"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="#FFC107"
+            android:layout_marginBottom="6dp"/>
+
+        <TextView
+            android:id="@+id/detailsPlaceholder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tap a station above to view details."
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:paddingBottom="20dp"/>
+
+    </LinearLayout>
 
 </ScrollView>
