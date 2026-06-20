@@ -37,6 +37,15 @@ import android.os.Handler;
 import android.os.Looper;
 import android.widget.Spinner;
 import android.widget.ScrollView;
+import android.graphics.Color;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
+import android.graphics.Typeface;
+import android.app.AlertDialog;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import gov.tak.api.plugin.IPlugin;
 import gov.tak.api.plugin.IServiceController;
@@ -65,6 +74,7 @@ public class aprsimport implements IPlugin {
     private TextView aprsStatus;
     private TextView detailsPlaceholder;
     private AprsRadioController radioController;
+    private boolean sortByDistance = false;
 
     private BroadcastReceiver aprsReceiver;
 
@@ -156,6 +166,8 @@ public class aprsimport implements IPlugin {
         filter.addAction("org.aprsdroid.app.UPDATE");
         filter.addAction("org.aprsdroid.app.MESSAGE");
         filter.addAction("org.aprsdroid.app.HUD");
+        filter.addAction("org.aprsdroid.app.SERVICE_STARTED");
+        filter.addAction("org.aprsdroid.app.SERVICE_STOPPED");
 
         pluginContext.registerReceiver(aprsReceiver, filter, Context.RECEIVER_EXPORTED);
         Log.d(TAG, "APRS receiver registered");
@@ -176,6 +188,33 @@ public class aprsimport implements IPlugin {
     }
 
     private void processAprsBroadcast(Intent intent) {
+
+        String action = intent.getAction();
+
+        if ("org.aprsdroid.app.SERVICE_STARTED".equals(action)) {
+
+            if (aprsStatus != null) {
+
+                aprsStatus.setText("🟢 APRSdroid Running");
+                aprsStatus.setTextColor(Color.GREEN);
+
+            }
+
+            return;
+        }
+
+        if ("org.aprsdroid.app.SERVICE_STOPPED".equals(action)) {
+
+            if (aprsStatus != null) {
+
+                aprsStatus.setText("🔴 APRSdroid Stopped");
+                aprsStatus.setTextColor(Color.RED);
+
+            }
+
+            return;
+        }
+
         Location loc = intent.getParcelableExtra("location");
 
         if ("org.aprsdroid.app.HUD".equals(intent.getAction())) {
@@ -404,18 +443,34 @@ public class aprsimport implements IPlugin {
         Matcher hum = Pattern.compile("h(\\d{2,3})").matcher(comment);
         if (hum.find()) stationHumidity.put(callsign, hum.group(1));
 
-        Matcher cs = Pattern.compile(">(\\d{1,3})/(\\d{1,3})").matcher(comment);
+        Matcher cs = Pattern.compile("^(\\d{3})/(\\d{3})\\s*").matcher(comment);
+
         if (cs.find()) {
-            stationCourse.put(callsign, cs.group(1));
-            stationSpeed.put(callsign, cs.group(2));
+
+            stationCourse.put(callsign,
+                    String.valueOf(Integer.parseInt(cs.group(1))));
+
+            stationSpeed.put(callsign,
+                    String.valueOf(Integer.parseInt(cs.group(2))));
+
+            comment = comment.substring(cs.end()).trim();
         }
 
-        comment = comment.replaceAll("^\\d{3}/\\d{3}g.{0,40}?b\\d{5}", "").trim();
         comment = comment.replaceFirst("^PHG\\d{4,5}/?", "");
         comment = comment.replaceFirst("^RNG\\d{4}/?", "");
         comment = comment.replaceFirst("^DFS\\d{4}/?", "");
 
         if (comment.matches("^[^A-Za-z0-9]{1,4}$")) return "";
+
+        comment = comment.replaceAll("\\bg\\d{3}\\b", "");
+        comment = comment.replaceAll("\\bt\\d{3}\\b", "");
+        comment = comment.replaceAll("\\br\\d{3}\\b", "");
+        comment = comment.replaceAll("\\bp\\d{3}\\b", "");
+        comment = comment.replaceAll("\\bP\\d{3}\\b", "");
+        comment = comment.replaceAll("\\bh\\d{2,3}\\b", "");
+        comment = comment.replaceAll("\\bb\\d{5}\\b", "");
+
+        comment = comment.replaceAll("\\s{2,}", " ").trim();
 
         return comment.trim();
     }
@@ -434,14 +489,90 @@ public class aprsimport implements IPlugin {
             Button stopAprsButton = paneView.findViewById(R.id.stopAprsButton);
             Button beaconButton = paneView.findViewById(R.id.beaconButton);
             Button newMessageButton = paneView.findViewById(R.id.newMessageButton);
+            Button sortButton = paneView.findViewById(R.id.sortButton);
+
+            startAprsButton.setOnClickListener(v -> {
+
+                Intent i = new Intent("org.aprsdroid.app.SERVICE");
+                i.setPackage("org.aprsdroid.app");
+
+                pluginContext.startService(i);
+                aprsStatus.setText("Starting APRSdroid...");
+                aprsStatus.setTextColor(Color.YELLOW);
+
+            });
+
+            stopAprsButton.setOnClickListener(v -> {
+
+                Intent i = new Intent("org.aprsdroid.app.SERVICE_STOP");
+                i.setPackage("org.aprsdroid.app");
+
+                pluginContext.startService(i);
+                aprsStatus.setText("Stopping APRSdroid...");
+                aprsStatus.setTextColor(Color.YELLOW);
+
+            });
+
+            beaconButton.setOnClickListener(v -> {
+
+                Intent i = new Intent("org.aprsdroid.app.ONCE");
+                i.setPackage("org.aprsdroid.app");
+
+                pluginContext.startService(i);
+
+                aprsStatus.setText("Sending Beacon...");
+                aprsStatus.setTextColor(Color.YELLOW);
+
+            });
+
+            newMessageButton.setOnClickListener(v -> {
+
+                final EditText editText = new EditText(pluginContext);
+
+                editText.setHint("Enter Callsign");
+
+                new AlertDialog.Builder(MapView.getMapView().getContext())
+                        .setTitle("New APRS Message")
+                        .setView(editText)
+                        .setPositiveButton("Next", (dialog, which) -> {
+
+                            String callsign = editText.getText().toString().trim().toUpperCase();
+
+                            if (!callsign.isEmpty()) {
+
+                                Toast.makeText(
+                                                MapView.getMapView().getContext(),
+                                                "Message to " + callsign,
+                                                Toast.LENGTH_SHORT)
+                                        .show();
+
+                            }
+
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+
+            });
+
+            sortButton.setOnClickListener(v -> {
+
+                sortByDistance = !sortByDistance;
+
+                sortButton.setText(
+                        sortByDistance
+                                ? "Sort: Distance"
+                                : "Sort: Recent");
+
+                refreshAprsPane();
+
+            });
 
             scrollView = paneView.findViewById(R.id.aprsScrollView);
             aprsList = paneView.findViewById(R.id.aprsList);
-
             aprsStatus = paneView.findViewById(R.id.aprsStatus);
+            aprsStatus.setText("⚪ Waiting for APRSdroid...");
+            aprsStatus.setTextColor(Color.LTGRAY);
             detailsPlaceholder = paneView.findViewById(R.id.detailsPlaceholder);
-
-            Spinner sortSpinner = paneView.findViewById(R.id.sortSpinner);
 
             final int[] choices = {1, 2, 4, 8, 12, 24};
             AtakPreferences prefs = new AtakPreferences(MapView.getMapView().getContext());
@@ -546,56 +677,191 @@ public class aprsimport implements IPlugin {
     }
 
     private void refreshAprsPane() {
-        if (aprsList == null) return;
+
+        if (aprsList == null)
+            return;
 
         aprsList.removeAllViews();
+
         long now = System.currentTimeMillis();
 
         List<String> stations = new ArrayList<>(stationComments.keySet());
-        stations.sort((a, b) -> Long.compare(lastHeard.getOrDefault(b, 0L), lastHeard.getOrDefault(a, 0L)));
+
+        if (sortByDistance && MapView.getMapView().getSelfMarker() != null) {
+
+            stations.sort((a, b) -> {
+
+                double da = Double.MAX_VALUE;
+                double db = Double.MAX_VALUE;
+
+                MapItem ia = MapView.getMapView().getRootGroup().deepFindUID("APRS-" + a);
+                MapItem ib = MapView.getMapView().getRootGroup().deepFindUID("APRS-" + b);
+
+                if (ia instanceof Marker) {
+                    da = MapView.getMapView()
+                            .getSelfMarker()
+                            .getPoint()
+                            .distanceTo(((Marker) ia).getPoint());
+                }
+
+                if (ib instanceof Marker) {
+                    db = MapView.getMapView()
+                            .getSelfMarker()
+                            .getPoint()
+                            .distanceTo(((Marker) ib).getPoint());
+                }
+
+                return Double.compare(da, db);
+
+            });
+
+        } else {
+
+            stations.sort((a, b) ->
+                    Long.compare(
+                            lastHeard.getOrDefault(b, 0L),
+                            lastHeard.getOrDefault(a, 0L)));
+
+        }
 
         for (String call : stations) {
-            Long heard = lastHeard.get(call);
+
+            MapItem item = MapView.getMapView()
+                    .getRootGroup()
+                    .deepFindUID("APRS-" + call);
+
+            double miles = -1;
+
+            if (item instanceof Marker &&
+                    MapView.getMapView().getSelfMarker() != null) {
+
+                Marker marker = (Marker) item;
+
+                double meters = MapView.getMapView()
+                        .getSelfMarker()
+                        .getPoint()
+                        .distanceTo(marker.getPoint());
+
+                miles = meters * 0.000621371;
+            }
+
             String age = "?";
+
+            Long heard = lastHeard.get(call);
+
             if (heard != null) {
-                long minutes = (now - heard) / 60000;
-                age = minutes < 60 ? minutes + "m" : (minutes / 60) + "h";
+
+                long ageMinutes = (now - heard) / 60000;
+
+                long hrs = ageMinutes / 60;
+                long mins = ageMinutes % 60;
+
+                if (hrs > 0)
+                    age = hrs + " hr " + mins + " min ago";
+                else
+                    age = mins + " min ago";
+            }
+
+            SpannableStringBuilder text = new SpannableStringBuilder();
+
+            int start;
+            int end;
+
+            /* ---------- CALLSIGN ---------- */
+
+            start = text.length();
+
+            text.append(call);
+
+            end = text.length();
+
+            text.setSpan(
+                    new ForegroundColorSpan(Color.CYAN),
+                    start,
+                    end,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            text.setSpan(
+                    new StyleSpan(Typeface.BOLD),
+                    start,
+                    end,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            /* ---------- DISTANCE ---------- */
+
+            if (miles >= 0) {
+
+                start = text.length();
+
+                text.append(String.format("    %.1f mi", miles));
+
+                end = text.length();
+
+                text.setSpan(
+                        new ForegroundColorSpan(Color.WHITE),
+                        start,
+                        end,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+
+            text.append("\n");
+
+            /* ---------- LAST HEARD ---------- */
+
+            start = text.length();
+
+            text.append(age);
+
+            end = text.length();
+
+            text.setSpan(
+                    new ForegroundColorSpan(Color.LTGRAY),
+                    start,
+                    end,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            /* ---------- COMMENT ---------- */
+
+            String comment = stationComments.get(call);
+
+            if (comment != null && !comment.isEmpty()) {
+
+                text.append(" • ");
+
+                start = text.length();
+
+                text.append(comment);
+
+                end = text.length();
+
+                text.setSpan(
+                        new ForegroundColorSpan(Color.GREEN),
+                        start,
+                        end,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
 
             TextView row = new TextView(pluginContext);
-            StringBuilder text = new StringBuilder();
-            text.append(call).append("   ").append(age).append(" ago\n");
 
-            MapItem item = MapView.getMapView().getRootGroup().deepFindUID("APRS-" + call);
-            if (item instanceof Marker && MapView.getMapView().getSelfMarker() != null) {
-                Marker marker = (Marker) item;
-                double meters = MapView.getMapView().getSelfMarker().getPoint().distanceTo(marker.getPoint());
-                double miles = meters * 0.000621371;
-                text.append(String.format("%.1f mi\n", miles));
-            }
+            row.setText(text);
 
-            String comment = stationComments.get(call);
-            if (comment != null && !comment.isEmpty()) text.append(comment);
-
-            addIfNotEmpty(text, stationAltitude.get(call), "\nAltitude: ", " ft");
-            addIfNotEmpty(text, stationTemperature.get(call), "\nTemp: ", "°F");
-            addIfNotEmpty(text, stationWind.get(call), "\nWind: ", "");
-            addIfNotEmpty(text, stationBarometer.get(call), "\nBaro: ", " mb");
-            addIfNotEmpty(text, stationHumidity.get(call), "\nHumidity: ", "%");
-            addIfNotEmpty(text, stationCourse.get(call), "\nCourse: ", "°");
-            addIfNotEmpty(text, stationSpeed.get(call), "\nSpeed: ", " mph");
-
-            row.setText(text.toString());
             row.setTextSize(16);
-            row.setPadding(8, 8, 8, 16);
+
+            row.setPadding(12, 10, 12, 10);
+
             row.setClickable(true);
 
             row.setOnClickListener(v -> {
 
-                MapItem cotItem = MapView.getMapView().getRootGroup().deepFindUID("APRS-" + call);
+                MapItem cotItem = MapView.getMapView()
+                        .getRootGroup()
+                        .deepFindUID("APRS-" + call);
 
                 if (cotItem instanceof Marker) {
-                    MapView.getMapView().getMapController().panTo(((Marker) cotItem).getPoint(), true);
+
+                    MapView.getMapView()
+                            .getMapController()
+                            .panTo(((Marker) cotItem).getPoint(), true);
                 }
 
                 showStationDetails(call);
@@ -603,6 +869,16 @@ public class aprsimport implements IPlugin {
             });
 
             aprsList.addView(row);
+
+            View divider = new View(pluginContext);
+
+            divider.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    1));
+
+            divider.setBackgroundColor(Color.DKGRAY);
+
+            aprsList.addView(divider);
         }
     }
 

@@ -91,11 +91,12 @@
             android:textStyle="bold"
             android:textColor="#FFC107"/>
 
-        <Spinner
-            android:id="@+id/sortSpinner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"/>
+        <Button
+           android:id="@+id/sortButton"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:text="Sort: Recent"
+           android:layout_marginBottom="10dp"/>
 
         <!-- STALE TIME -->
 
