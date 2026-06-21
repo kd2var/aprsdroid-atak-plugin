@@ -16,8 +16,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.atak.plugins.impl.PluginContextProvider;
 import com.atak.plugins.impl.PluginLayoutInflater;
@@ -35,7 +33,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
-import android.widget.Spinner;
 import android.widget.ScrollView;
 import android.graphics.Color;
 import android.text.SpannableStringBuilder;
@@ -76,6 +73,7 @@ public class aprsimport implements IPlugin {
     private TextView aprsStatus;
     private TextView detailsPlaceholder;
     private AprsRadioController radioController;
+    private AprsMessageManager messageManager;
     private boolean sortByDistance = false;
 
     private BroadcastReceiver aprsReceiver;
@@ -93,7 +91,6 @@ public class aprsimport implements IPlugin {
     private final HashMap<String, String> stationRainMidnight = new HashMap<>();
     private final HashMap<String, String> stationCourse = new HashMap<>();
     private final HashMap<String, String> stationSpeed = new HashMap<>();
-    private final HashMap<String, String> aprsSymbols = new HashMap<>();
 
     private final CotDispatcher cotDispatcher = com.atakmap.android.cot.CotMapComponent.getInternalDispatcher();
 
@@ -124,6 +121,7 @@ public class aprsimport implements IPlugin {
             registerAprsIconSet();
 
             radioController = new AprsRadioController(pluginContext);
+            messageManager = new AprsMessageManager(pluginContext);
         }
 
         uiService = serviceController.getService(IHostUIService.class);
@@ -170,6 +168,7 @@ public class aprsimport implements IPlugin {
         filter.addAction("org.aprsdroid.app.POSITION");
         filter.addAction("org.aprsdroid.app.UPDATE");
         filter.addAction("org.aprsdroid.app.MESSAGE");
+        filter.addAction("org.aprsdroid.app.MESSAGETX");
         filter.addAction("org.aprsdroid.app.HUD");
         filter.addAction("org.aprsdroid.app.SERVICE_STARTED");
         filter.addAction("org.aprsdroid.app.SERVICE_STOPPED");
@@ -884,19 +883,30 @@ public class aprsimport implements IPlugin {
 
         while (it.hasNext()) {
             Map.Entry<String, Long> entry = it.next();
+
             if (now - entry.getValue() > staleMillis) {
                 String call = entry.getKey();
+
+                MapItem item = MapView.getMapView()
+                        .getRootGroup()
+                        .deepFindUID("APRS-" + call);
+
+                if (item != null && item.getGroup() != null) {
+                    item.getGroup().removeItem(item);
+                }
+
                 stationComments.remove(call);
                 stationAltitude.remove(call);
                 stationTemperature.remove(call);
                 stationWind.remove(call);
                 stationBarometer.remove(call);
-                stationRain1Hour.remove(call);
-                stationRain24Hour.remove(call);
-                stationRainMidnight.remove(call);
                 stationHumidity.remove(call);
                 stationCourse.remove(call);
                 stationSpeed.remove(call);
+                stationRain1Hour.remove(call);
+                stationRain24Hour.remove(call);
+                stationRainMidnight.remove(call);
+
                 it.remove();
             }
         }
