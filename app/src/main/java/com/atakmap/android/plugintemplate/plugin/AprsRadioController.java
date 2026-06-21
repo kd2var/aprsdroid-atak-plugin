@@ -8,16 +8,16 @@ public class AprsRadioController {
     private final Context context;
 
     public AprsRadioController(Context context) {
-        this.context = context.getApplicationContext();
+        this.context = context;
     }
 
-    public void startService() {
+    public void startAprsdroid() {
         Intent i = new Intent("org.aprsdroid.app.SERVICE");
         i.setPackage("org.aprsdroid.app");
         context.startService(i);
     }
 
-    public void stopService() {
+    public void stopAprsdroid() {
         Intent i = new Intent("org.aprsdroid.app.SERVICE_STOP");
         i.setPackage("org.aprsdroid.app");
         context.startService(i);
@@ -26,13 +26,6 @@ public class AprsRadioController {
     public void sendBeacon() {
         Intent i = new Intent("org.aprsdroid.app.ONCE");
         i.setPackage("org.aprsdroid.app");
-        context.startService(i);
-    }
-
-    public void sendRawPacket(String packet) {
-        Intent i = new Intent("org.aprsdroid.app.SEND_PACKET");
-        i.setPackage("org.aprsdroid.app");
-        i.putExtra("data", packet);
         context.startService(i);
     }
 }

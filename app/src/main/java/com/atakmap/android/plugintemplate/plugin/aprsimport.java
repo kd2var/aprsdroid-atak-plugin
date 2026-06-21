@@ -56,6 +56,8 @@ import gov.tak.api.ui.ToolbarItem;
 import gov.tak.api.ui.ToolbarItemAdapter;
 import gov.tak.platform.marshal.MarshalManager;
 
+import com.atakmap.android.plugintemplate.plugin.AprsPacketParser;
+
 /**
  * APRS Import Plugin for ATAK - Cleaned & Fixed Version
  */
@@ -86,13 +88,16 @@ public class aprsimport implements IPlugin {
     private final HashMap<String, String> stationWind = new HashMap<>();
     private final HashMap<String, String> stationBarometer = new HashMap<>();
     private final HashMap<String, String> stationHumidity = new HashMap<>();
+    private final HashMap<String, String> stationRain1Hour = new HashMap<>();
+    private final HashMap<String, String> stationRain24Hour = new HashMap<>();
+    private final HashMap<String, String> stationRainMidnight = new HashMap<>();
     private final HashMap<String, String> stationCourse = new HashMap<>();
     private final HashMap<String, String> stationSpeed = new HashMap<>();
     private final HashMap<String, String> aprsSymbols = new HashMap<>();
 
     private final CotDispatcher cotDispatcher = com.atakmap.android.cot.CotMapComponent.getInternalDispatcher();
 
-    private static final String APRS_ICONSET_UID = "9c9f2b11-0d60-4f6c-a001-aprsiconset";
+    private static final String APRS_ICONSET_UID = "9c9f2b11-0d60-4f6c-a001-aprsiconset-v3";
     private static final String APRS_ICONSET_NAME = "APRS";
 
     private static final String PREF_STALE_HOURS = "aprs_stale_hours";
@@ -233,11 +238,77 @@ public class aprsimport implements IPlugin {
         String packet = intent.getStringExtra("status");
         if (packet == null) packet = intent.getStringExtra("packet");
 
-        String aprsSymbol = getSymbol(intent, packet);
+        String rawComment =
+                AprsPacketParser.extractComment(intent, packet);
+
+        String symbolHint = null;
+
+        if ("org.aprsdroid.app.HUD".equals(intent.getAction())) {
+            symbolHint = intent.getStringExtra("org.aprsdroid.app.SYMBOL");
+        }
+
+        AprsPacketParser.ParsedData parsed =
+                AprsPacketParser.parse(packet, rawComment, symbolHint);
+
+        String aprsSymbol = parsed.symbol;
+        Log.d(TAG, "ICON DEBUG " + callsign
+                + " oldSymbol=[" + aprsSymbol + "]"
+                + " parsedSymbol=[" + parsed.symbol + "]"
+                + " packet=[" + packet + "]");
         if (aprsSymbol == null || aprsSymbol.length() < 2) aprsSymbol = "/>";
 
-        String rawComment = extractComment(intent, packet);
-        String cleanedComment = cleanAprsComment(callsign, rawComment);
+        String cleanedComment =
+                cleanAprsComment(callsign, parsed.comment);
+
+        if (parsed.course != null)
+            stationCourse.put(callsign, parsed.course);
+
+        if (parsed.speed != null)
+            stationSpeed.put(callsign, parsed.speed);
+
+        if (parsed.windDirection != null) {
+
+            stationWind.put(
+                    callsign,
+                    parsed.windDirection + "° "
+                            + parsed.windSpeed + " mph"
+                            + (parsed.windGust != null
+                            ? " Gust " + parsed.windGust + " mph"
+                            : ""));
+
+        }
+
+        if (parsed.temperature != null)
+            stationTemperature.put(callsign, parsed.temperature);
+
+        if (parsed.humidity != null)
+            stationHumidity.put(callsign, parsed.humidity);
+
+        if (parsed.barometer != null)
+            stationBarometer.put(
+                    callsign,
+                    String.format("%.1f",
+                            Integer.parseInt(parsed.barometer) / 10.0));
+
+        if (parsed.rain1Hour != null)
+            stationRain1Hour.put(callsign, parsed.rain1Hour);
+
+        if (parsed.rain24Hour != null)
+            stationRain24Hour.put(callsign, parsed.rain24Hour);
+
+        if (parsed.rainSinceMidnight != null)
+            stationRainMidnight.put(callsign, parsed.rainSinceMidnight);
+
+        if (parsed.altitude != null)
+            stationAltitude.put(callsign, parsed.altitude);
+
+        Log.d(TAG, "PARSED " + callsign
+                + " type=" + parsed.type
+                + " course=" + parsed.course
+                + " speed=" + parsed.speed
+                + " windDir=" + parsed.windDirection
+                + " windSpeed=" + parsed.windSpeed
+                + " comment=[" + parsed.comment + "]");
 
         stationComments.put(callsign, cleanedComment);
         lastHeard.put(callsign, System.currentTimeMillis());
@@ -263,46 +334,6 @@ public class aprsimport implements IPlugin {
         return callsign;
     }
 
-    private String getSymbol(Intent intent, String packet) {
-        if ("org.aprsdroid.app.HUD".equals(intent.getAction())) {
-            String sym = intent.getStringExtra("org.aprsdroid.app.SYMBOL");
-            if (sym != null && !sym.isEmpty()) {
-                aprsSymbols.put(getCallsign(intent), sym);
-                return sym;
-            }
-        }
-        String callsign = getCallsign(intent);
-        if (callsign != null && aprsSymbols.containsKey(callsign)) {
-            return aprsSymbols.get(callsign);
-        }
-        return getAprsSymbol(packet);
-    }
-
-    private String extractComment(Intent intent, String packet) {
-        if ("org.aprsdroid.app.HUD".equals(intent.getAction())) {
-            String c = intent.getStringExtra("org.aprsdroid.app.COMMENT");
-            return c != null ? c : "";
-        }
-
-        if (packet != null) {
-            int pos = packet.indexOf(":=");
-            if (pos < 0) pos = packet.indexOf(":!");
-            if (pos >= 0) {
-                String body = packet.substring(pos + 2);
-                int slashA = body.indexOf("/A=");
-                if (slashA >= 0) {
-                    int space = body.indexOf(' ', slashA);
-                    if (space > 0 && space < body.length() - 1) {
-                        return body.substring(space + 1).trim();
-                    }
-                } else if (body.length() > 19) {
-                    return body.substring(19).trim();
-                }
-            }
-        }
-        return "";
-    }
-
     private String buildDetailText(String callsign) {
         StringBuilder sb = new StringBuilder(stationComments.getOrDefault(callsign, ""));
         addIfNotEmpty(sb, stationAltitude.get(callsign), "\nAltitude: ", " ft");
@@ -312,6 +343,9 @@ public class aprsimport implements IPlugin {
         addIfNotEmpty(sb, stationHumidity.get(callsign), "\nHumidity: ", "%");
         addIfNotEmpty(sb, stationCourse.get(callsign), "\nCourse: ", "°");
         addIfNotEmpty(sb, stationSpeed.get(callsign), "\nSpeed: ", " mph");
+        addIfNotEmpty(sb, stationRain1Hour.get(callsign), "\nRain 1hr: ", "");
+        addIfNotEmpty(sb, stationRain24Hour.get(callsign), "\nRain 24hr: ", "");
+        addIfNotEmpty(sb, stationRainMidnight.get(callsign), "\nRain Midnight: ", "");
         return sb.toString().trim();
     }
 
@@ -374,7 +408,18 @@ public class aprsimport implements IPlugin {
             Bitmap raw = BitmapFactory.decodeStream(is);
             Bitmap bmp = Bitmap.createScaledBitmap(raw, 48, 48, true);
 
-            UserIcon icon = new UserIcon(0, APRS_ICONSET_UID, group, fileName, cotType, bmp, 48);
+            int iconId = Math.abs((group + "/" + fileName).hashCode());
+
+            String uniqueFileName = group + "_" + fileName;
+
+            UserIcon icon = new UserIcon(
+                    iconId,
+                    APRS_ICONSET_UID,
+                    group,
+                    uniqueFileName,
+                    cotType,
+                    bmp,
+                    48);
 
             java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
             bmp.compress(Bitmap.CompressFormat.PNG, 100, baos);
@@ -385,94 +430,49 @@ public class aprsimport implements IPlugin {
     }
 
     private String buildAprsIconPath(String aprsSymbol) {
-        if (aprsSymbol == null || aprsSymbol.length() != 2) aprsSymbol = "/>";
+        if (aprsSymbol == null || aprsSymbol.length() != 2)
+            aprsSymbol = "/>";
+
         int index = getAprsIndex(aprsSymbol);
         if (index < 0) index = 0;
 
-        String table = aprsSymbol.startsWith("\\") ? "table1" : "table0";
-        return APRS_ICONSET_UID + "/" + table + "/symbol_" + String.format("%02d", index) + ".png";
+        char tableId = aprsSymbol.charAt(0);
+
+        String table;
+
+        if (tableId == '/') {
+            table = "table0";
+        } else {
+            // '\' and overlay characters A-Z / 0-9 use alternate table
+            table = "table1";
+        }
+
+        String storedName = table + "_symbol_" + String.format("%02d", index) + ".png";
+
+        String path = APRS_ICONSET_UID + "/" + table + "/" + storedName;
+
+        Log.d(TAG, "ICON PATH symbol=[" + aprsSymbol
+                + "] table=[" + table
+                + "] index=[" + index
+                + "] path=[" + path + "]");
+
+        return path;
     }
 
     private int getAprsIndex(String symbol) {
         if (symbol == null || symbol.length() != 2) return -1;
-        symbol = normalizeAprsSymbol(symbol);
         return symbol.charAt(1) - 33;
-    }
-
-    private String normalizeAprsSymbol(String symbol) {
-        if (symbol == null || symbol.length() != 2) return "/>";
-        if (symbol.charAt(0) == 'I' && symbol.charAt(1) == '#') return "/#";
-        return symbol;
-    }
-
-    private String getAprsSymbol(String packet) {
-        if (packet == null) return null;
-        int pos = packet.indexOf(':');
-        if (pos < 0) return null;
-        String body = packet.substring(pos + 1);
-        if (body.length() < 20) return null;
-
-        if (body.startsWith("@") || body.startsWith("/")) {
-            return "" + body.charAt(17) + body.charAt(27);
-        }
-        if (body.startsWith("!") || body.startsWith("=")) {
-            return "" + body.charAt(9) + body.charAt(19);
-        }
-        return null;
     }
 
     private String cleanAprsComment(String callsign, String comment) {
         if (comment == null) return "";
+
         comment = comment.trim();
 
-        Matcher alt = Pattern.compile("/?A=(-?\\d{3,6})").matcher(comment);
-        if (alt.find()) {
-            stationAltitude.put(callsign, alt.group(1));
-            comment = alt.replaceAll("").trim();
-        }
+        if (comment.matches("^[^A-Za-z0-9]{1,4}$"))
+            return "";
 
-        Matcher temp = Pattern.compile("t(\\d{3})").matcher(comment);
-        if (temp.find()) stationTemperature.put(callsign, temp.group(1));
-
-        Matcher wind = Pattern.compile("(\\d{3})/(\\d{3})g(\\d{3})").matcher(comment);
-        if (wind.find()) stationWind.put(callsign, wind.group(1) + "/" + wind.group(2) + "g" + wind.group(3));
-
-        Matcher baro = Pattern.compile("b(\\d{5})").matcher(comment);
-        if (baro.find()) stationBarometer.put(callsign, String.format("%.1f", Integer.parseInt(baro.group(1)) / 10.0));
-
-        Matcher hum = Pattern.compile("h(\\d{2,3})").matcher(comment);
-        if (hum.find()) stationHumidity.put(callsign, hum.group(1));
-
-        Matcher cs = Pattern.compile("^(\\d{3})/(\\d{3})\\s*").matcher(comment);
-
-        if (cs.find()) {
-
-            stationCourse.put(callsign,
-                    String.valueOf(Integer.parseInt(cs.group(1))));
-
-            stationSpeed.put(callsign,
-                    String.valueOf(Integer.parseInt(cs.group(2))));
-
-            comment = comment.substring(cs.end()).trim();
-        }
-
-        comment = comment.replaceFirst("^PHG\\d{4,5}/?", "");
-        comment = comment.replaceFirst("^RNG\\d{4}/?", "");
-        comment = comment.replaceFirst("^DFS\\d{4}/?", "");
-
-        if (comment.matches("^[^A-Za-z0-9]{1,4}$")) return "";
-
-        comment = comment.replaceAll("\\bg\\d{3}\\b", "");
-        comment = comment.replaceAll("\\bt\\d{3}\\b", "");
-        comment = comment.replaceAll("\\br\\d{3}\\b", "");
-        comment = comment.replaceAll("\\bp\\d{3}\\b", "");
-        comment = comment.replaceAll("\\bP\\d{3}\\b", "");
-        comment = comment.replaceAll("\\bh\\d{2,3}\\b", "");
-        comment = comment.replaceAll("\\bb\\d{5}\\b", "");
-
-        comment = comment.replaceAll("\\s{2,}", " ").trim();
-
-        return comment.trim();
+        return comment;
     }
 
     private void showPane() {
@@ -493,10 +493,8 @@ public class aprsimport implements IPlugin {
 
             startAprsButton.setOnClickListener(v -> {
 
-                Intent i = new Intent("org.aprsdroid.app.SERVICE");
-                i.setPackage("org.aprsdroid.app");
+                radioController.startAprsdroid();
 
-                pluginContext.startService(i);
                 aprsStatus.setText("Starting APRSdroid...");
                 aprsStatus.setTextColor(Color.YELLOW);
 
@@ -504,10 +502,8 @@ public class aprsimport implements IPlugin {
 
             stopAprsButton.setOnClickListener(v -> {
 
-                Intent i = new Intent("org.aprsdroid.app.SERVICE_STOP");
-                i.setPackage("org.aprsdroid.app");
+                radioController.stopAprsdroid();
 
-                pluginContext.startService(i);
                 aprsStatus.setText("Stopping APRSdroid...");
                 aprsStatus.setTextColor(Color.YELLOW);
 
@@ -515,10 +511,7 @@ public class aprsimport implements IPlugin {
 
             beaconButton.setOnClickListener(v -> {
 
-                Intent i = new Intent("org.aprsdroid.app.ONCE");
-                i.setPackage("org.aprsdroid.app");
-
-                pluginContext.startService(i);
+                radioController.sendBeacon();
 
                 aprsStatus.setText("Sending Beacon...");
                 aprsStatus.setTextColor(Color.YELLOW);
@@ -650,6 +643,9 @@ public class aprsimport implements IPlugin {
         addIfNotEmpty(text, stationHumidity.get(call), "\nHumidity: ", "%");
         addIfNotEmpty(text, stationBarometer.get(call), "\nBarometer: ", " mb");
         addIfNotEmpty(text, stationWind.get(call), "\nWind: ", "");
+        addIfNotEmpty(text, stationRain1Hour.get(call), "\nRain 1hr: ", "");
+        addIfNotEmpty(text, stationRain24Hour.get(call), "\nRain 24hr: ", "");
+        addIfNotEmpty(text, stationRainMidnight.get(call), "\nRain Midnight: ", "");
         addIfNotEmpty(text, stationCourse.get(call), "\nCourse: ", "°");
         addIfNotEmpty(text, stationSpeed.get(call), "\nSpeed: ", " mph");
 
@@ -895,6 +891,9 @@ public class aprsimport implements IPlugin {
                 stationTemperature.remove(call);
                 stationWind.remove(call);
                 stationBarometer.remove(call);
+                stationRain1Hour.remove(call);
+                stationRain24Hour.remove(call);
+                stationRainMidnight.remove(call);
                 stationHumidity.remove(call);
                 stationCourse.remove(call);
                 stationSpeed.remove(call);
