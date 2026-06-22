@@ -2,6 +2,7 @@ package com.atakmap.android.plugintemplate.plugin;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 public class AprsRadioController {
 
@@ -12,20 +13,32 @@ public class AprsRadioController {
     }
 
     public void startAprsdroid() {
-        Intent i = new Intent("org.aprsdroid.app.SERVICE");
-        i.setPackage("org.aprsdroid.app");
-        context.startService(i);
+        try {
+            Intent i = new Intent("org.aprsdroid.app.SERVICE");
+            i.setPackage("org.aprsdroid.app");
+            context.startService(i);
+        } catch (Exception e) {
+            Log.e("APRSMRADIO", "Failed to start APRSdroid", e);
+        }
     }
 
     public void stopAprsdroid() {
-        Intent i = new Intent("org.aprsdroid.app.SERVICE_STOP");
-        i.setPackage("org.aprsdroid.app");
-        context.startService(i);
+        try {
+            Intent i = new Intent("org.aprsdroid.app.SERVICE_STOP");
+            i.setPackage("org.aprsdroid.app");
+            context.startService(i);
+        } catch (Exception e) {
+            Log.e("APRSMRADIO", "Failed to stop APRSdroid", e);
+        }
     }
 
     public void sendBeacon() {
-        Intent i = new Intent("org.aprsdroid.app.ONCE");
-        i.setPackage("org.aprsdroid.app");
-        context.startService(i);
+        try {
+            Intent i = new Intent("org.aprsdroid.app.ONCE");
+            i.setPackage("org.aprsdroid.app");
+            context.startService(i);
+        } catch (Exception e) {
+            Log.e("APRSMRADIO", "Failed to send APRSdroid beacon", e);
+        }
     }
 }

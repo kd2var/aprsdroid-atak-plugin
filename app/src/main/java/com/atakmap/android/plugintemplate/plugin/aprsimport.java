@@ -16,7 +16,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
+import android.os.Bundle;
+import com.atakmap.android.chat.ChatManagerMapComponent;
+import com.atakmap.android.ipc.AtakBroadcast;
 import com.atak.plugins.impl.PluginContextProvider;
 import com.atak.plugins.impl.PluginLayoutInflater;
 import com.atakmap.android.maps.MapView;
@@ -28,6 +30,7 @@ import com.atakmap.coremap.cot.event.CotEvent;
 import com.atakmap.android.icons.UserIcon;
 import com.atakmap.android.icons.UserIconSet;
 import com.atakmap.android.icons.UserIconDatabase;
+import com.atakmap.android.cot.CotMapComponent;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -69,15 +72,18 @@ public class aprsimport implements IPlugin {
     private View paneView;
     private LinearLayout aprsList;
     private TextView aprsStatus;
-    private TextView detailsPlaceholder;
     private AprsRadioController radioController;
     private AprsMessageManager messageManager;
+    private AprsGeoChatBridge geoChatBridge;
+    private AprsConnectorHandler aprsConnectorHandler;
     private View radioPage;
     private View stationsPage;
     private boolean sortByDistance = false;
     private boolean callsignPromptShown = false;
 
     private BroadcastReceiver aprsReceiver;
+
+    private BroadcastReceiver aprsChatReplyReceiver;
 
     // Station data
     private final HashMap<String, Long> lastHeard = new HashMap<>();
@@ -123,6 +129,8 @@ public class aprsimport implements IPlugin {
 
             radioController = new AprsRadioController(pluginContext);
             messageManager = new AprsMessageManager(pluginContext);
+            geoChatBridge = new AprsGeoChatBridge(pluginContext);
+            messageManager.setGeoChatBridge(geoChatBridge);
         }
 
         uiService = serviceController.getService(IHostUIService.class);
@@ -152,6 +160,16 @@ public class aprsimport implements IPlugin {
             uiService.addToolbarItem(toolbarItem);
         }
 
+        if (aprsConnectorHandler == null) {
+            aprsConnectorHandler = new AprsConnectorHandler();
+
+            CotMapComponent.getInstance()
+                    .getContactConnectorMgr()
+                    .addContactHandler(aprsConnectorHandler);
+
+            Log.d(TAG, "APRS connector handler registered");
+        }
+
         cleanupHandler.postDelayed(cleanupRunnable, 60 * 1000);
 
         AtakPreferences prefs = new AtakPreferences(MapView.getMapView().getContext());
@@ -173,6 +191,53 @@ public class aprsimport implements IPlugin {
         filter.addAction("org.aprsdroid.app.HUD");
         filter.addAction("org.aprsdroid.app.SERVICE_STARTED");
         filter.addAction("org.aprsdroid.app.SERVICE_STOPPED");
+
+        aprsChatReplyReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+
+                Bundle chatMessage = intent.getBundleExtra(
+                        ChatManagerMapComponent.PLUGIN_SEND_MESSAGE_EXTRA);
+
+                Log.d(TAG, "APRS GeoChat reply action="
+                        + intent.getAction()
+                        + " bundle="
+                        + chatMessage);
+
+                if (chatMessage != null) {
+
+                    String destination =
+                            chatMessage.getString("conversationName");
+
+                    String message =
+                            chatMessage.getString("message");
+
+                    Log.d(TAG, "APRS GeoChat reply destination=["
+                            + destination + "] message=["
+                            + message + "]");
+
+                    if (messageManager != null
+                            && destination != null
+                            && message != null
+                            && !destination.trim().isEmpty()
+                            && !message.trim().isEmpty()) {
+
+                        messageManager.sendAprsMessage(
+                                destination.trim(),
+                                message.trim());
+                    }
+                }
+            }
+        };
+
+        AtakBroadcast.DocumentedIntentFilter chatFilter =
+                new AtakBroadcast.DocumentedIntentFilter();
+
+        chatFilter.addAction(
+                AprsChatConnector.ACTION_SEND_CHAT_APRS,
+                "Sends APRS Chat message");
+
+        AtakBroadcast.getInstance().registerReceiver(aprsChatReplyReceiver, chatFilter);
 
         pluginContext.registerReceiver(aprsReceiver, filter, Context.RECEIVER_EXPORTED);
         Log.d(TAG, "APRS receiver registered");

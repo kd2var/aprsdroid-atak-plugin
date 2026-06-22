@@ -6,11 +6,15 @@ import android.util.Log;
 
 public class AprsMessageManager {
 
+    private AprsGeoChatBridge geoChatBridge;
+
     private static final String TAG = "APRSMSG";
 
     private final Context context;
 
     private String localCallsign;
+    private String lastMessageKey;
+    private long lastMessageTime;
 
     public boolean hasLocalCallsign() {
         return localCallsign != null && !localCallsign.trim().isEmpty();
@@ -40,10 +44,25 @@ public class AprsMessageManager {
             return;
         }
 
+        String messageKey = action + "|" + source + "|" + dest + "|" + body;
+        long now = System.currentTimeMillis();
+
+        if (messageKey.equals(lastMessageKey) && now - lastMessageTime < 120000) {
+            Log.d(TAG, "Ignoring duplicate APRS message");
+            return;
+        }
+
+        lastMessageKey = messageKey;
+        lastMessageTime = now;
+
         Log.d(TAG, "APRS MESSAGE action=" + action
                 + " source=[" + source + "]"
                 + " dest=[" + dest + "]"
                 + " body=[" + body + "]");
+
+        if (geoChatBridge != null) {
+            geoChatBridge.receiveAprsMessage(source, dest, body);
+        }
     }
 
     public void sendAprsMessage(String destinationCallsign, String message) {
@@ -102,5 +121,9 @@ public class AprsMessageManager {
     private String stripSsid(String call) {
         int dash = call.indexOf('-');
         return dash >= 0 ? call.substring(0, dash) : call;
+    }
+
+    public void setGeoChatBridge(AprsGeoChatBridge bridge) {
+        this.geoChatBridge = bridge;
     }
 }
