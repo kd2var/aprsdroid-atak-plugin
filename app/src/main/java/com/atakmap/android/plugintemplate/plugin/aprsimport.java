@@ -33,7 +33,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
-import android.widget.ScrollView;
 import android.graphics.Color;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -68,12 +67,13 @@ public class aprsimport implements IPlugin {
     private ToolbarItem toolbarItem;
     private Pane templatePane;
     private View paneView;
-    private ScrollView scrollView;
     private LinearLayout aprsList;
     private TextView aprsStatus;
     private TextView detailsPlaceholder;
     private AprsRadioController radioController;
     private AprsMessageManager messageManager;
+    private View radioPage;
+    private View stationsPage;
     private boolean sortByDistance = false;
 
     private BroadcastReceiver aprsReceiver;
@@ -477,8 +477,25 @@ public class aprsimport implements IPlugin {
     private void showPane() {
         if (templatePane == null) {
             paneView = PluginLayoutInflater.inflate(pluginContext, R.layout.main_layout, null);
-            aprsList = paneView.findViewById(R.id.aprsList);
-            detailsPlaceholder = paneView.findViewById(R.id.detailsPlaceholder);
+            Button radioPageButton = paneView.findViewById(R.id.radioPageButton);
+            Button stationsPageButton = paneView.findViewById(R.id.stationsPageButton);
+
+            radioPage = paneView.findViewById(R.id.radioPage);
+            stationsPage = paneView.findViewById(R.id.stationsPage);
+
+            radioPage.setVisibility(View.VISIBLE);
+            stationsPage.setVisibility(View.GONE);
+
+            radioPageButton.setOnClickListener(v -> {
+                radioPage.setVisibility(View.VISIBLE);
+                stationsPage.setVisibility(View.GONE);
+            });
+
+            stationsPageButton.setOnClickListener(v -> {
+                radioPage.setVisibility(View.GONE);
+                stationsPage.setVisibility(View.VISIBLE);
+                refreshAprsPane();
+            });
 
             Button staleMinus = paneView.findViewById(R.id.staleMinus);
             Button stalePlus = paneView.findViewById(R.id.stalePlus);
@@ -559,12 +576,10 @@ public class aprsimport implements IPlugin {
 
             });
 
-            scrollView = paneView.findViewById(R.id.aprsScrollView);
             aprsList = paneView.findViewById(R.id.aprsList);
             aprsStatus = paneView.findViewById(R.id.aprsStatus);
             aprsStatus.setText("⚪ Waiting for APRSdroid...");
             aprsStatus.setTextColor(Color.LTGRAY);
-            detailsPlaceholder = paneView.findViewById(R.id.detailsPlaceholder);
 
             final int[] choices = {1, 2, 4, 8, 12, 24};
             AtakPreferences prefs = new AtakPreferences(MapView.getMapView().getContext());
@@ -613,9 +628,6 @@ public class aprsimport implements IPlugin {
 
     private void showStationDetails(String call) {
 
-        if (detailsPlaceholder == null)
-            return;
-
         StringBuilder text = new StringBuilder();
 
         text.append("Callsign: ").append(call);
@@ -663,12 +675,12 @@ public class aprsimport implements IPlugin {
                 text.append("\nLast Heard: ").append(mins).append(" min ago");
         }
 
-        detailsPlaceholder.setText(text.toString());
+        new AlertDialog.Builder(MapView.getMapView().getContext())
+                .setTitle("Station Details")
+                .setMessage(text.toString())
+                .setPositiveButton("Back", null)
+                .show();
 
-        if (scrollView != null) {
-            scrollView.post(() ->
-                    scrollView.smoothScrollTo(0, detailsPlaceholder.getTop()));
-        }
     }
 
     private void refreshAprsPane() {
