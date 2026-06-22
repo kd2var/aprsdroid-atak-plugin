@@ -31,7 +31,7 @@ public class AprsGeoChatBridge {
         this.chatDb = ChatDatabase.getInstance(null);
     }
 
-    private synchronized IndividualContact getOrCreateAprsContact(String callsign) {
+    public synchronized IndividualContact getOrCreateAprsContact(String callsign) {
         if (callsign == null || callsign.trim().isEmpty())
             return null;
 

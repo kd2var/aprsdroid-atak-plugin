@@ -400,6 +400,11 @@ public class aprsimport implements IPlugin {
         lastHeard.put(callsign, System.currentTimeMillis());
 
         if (loc != null) {
+
+            if (geoChatBridge != null) {
+                geoChatBridge.getOrCreateAprsContact(callsign);
+            }
+
             double lat = loc.getLatitude();
             double lon = loc.getLongitude();
             String iconPath = buildAprsIconPath(aprsSymbol);
@@ -450,7 +455,7 @@ public class aprsimport implements IPlugin {
             String stale = iso.format(new java.util.Date(lastHeardTime + staleMillis));
 
             String cotXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
-                    + "<event version=\"2.0\" uid=\"APRS-" + callsign + "\" type=\"a-f-G-U-C\" "
+                    + "<event version=\"2.0\" uid=\"" + getAprsUid(callsign) + "\" type=\"a-f-G-U-C\" "
                     + "time=\"" + time + "\" start=\"" + time + "\" stale=\"" + stale + "\" how=\"m-g\">"
                     + "<point lat=\"" + lat + "\" lon=\"" + lon + "\" hae=\"0\" ce=\"9999\" le=\"9999\"/>"
                     + "<detail>"
@@ -734,7 +739,7 @@ public class aprsimport implements IPlugin {
 
         text.append("Callsign: ").append(call);
 
-        MapItem item = MapView.getMapView().getRootGroup().deepFindUID("APRS-" + call);
+        MapItem item = MapView.getMapView().getRootGroup().deepFindUID(getAprsUid(call));
 
         if (item instanceof Marker && MapView.getMapView().getSelfMarker() != null) {
 
@@ -803,8 +808,8 @@ public class aprsimport implements IPlugin {
                 double da = Double.MAX_VALUE;
                 double db = Double.MAX_VALUE;
 
-                MapItem ia = MapView.getMapView().getRootGroup().deepFindUID("APRS-" + a);
-                MapItem ib = MapView.getMapView().getRootGroup().deepFindUID("APRS-" + b);
+                MapItem ia = MapView.getMapView().getRootGroup().deepFindUID(getAprsUid(a));
+                MapItem ib = MapView.getMapView().getRootGroup().deepFindUID(getAprsUid(b));
 
                 if (ia instanceof Marker) {
                     da = MapView.getMapView()
@@ -837,7 +842,7 @@ public class aprsimport implements IPlugin {
 
             MapItem item = MapView.getMapView()
                     .getRootGroup()
-                    .deepFindUID("APRS-" + call);
+                    .deepFindUID(getAprsUid(call));
 
             double miles = -1;
 
@@ -964,7 +969,7 @@ public class aprsimport implements IPlugin {
 
                 MapItem cotItem = MapView.getMapView()
                         .getRootGroup()
-                        .deepFindUID("APRS-" + call);
+                        .deepFindUID(getAprsUid(call));
 
                 if (cotItem instanceof Marker) {
 
@@ -1003,7 +1008,7 @@ public class aprsimport implements IPlugin {
 
                 MapItem item = MapView.getMapView()
                         .getRootGroup()
-                        .deepFindUID("APRS-" + call);
+                        .deepFindUID(getAprsUid(call));
 
                 if (item != null && item.getGroup() != null) {
                     item.getGroup().removeItem(item);
@@ -1049,5 +1054,9 @@ public class aprsimport implements IPlugin {
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    private String getAprsUid(String callsign) {
+        return "aprs." + callsign;
     }
 }
