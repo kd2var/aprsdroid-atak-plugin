@@ -75,6 +75,7 @@ public class aprsimport implements IPlugin {
     private View radioPage;
     private View stationsPage;
     private boolean sortByDistance = false;
+    private boolean callsignPromptShown = false;
 
     private BroadcastReceiver aprsReceiver;
 
@@ -193,6 +194,24 @@ public class aprsimport implements IPlugin {
 
     private void processAprsBroadcast(Intent intent) {
 
+        if (messageManager != null
+                && messageManager.isAprsMessageIntent(intent)) {
+
+            if (!messageManager.hasLocalCallsign()) {
+
+                if (!callsignPromptShown) {
+                    callsignPromptShown = true;
+                    promptForLocalCallsign();
+                }
+
+                Log.d(TAG, "APRS message received before local callsign was known");
+                return;
+            }
+
+            messageManager.handleIncomingIntent(intent);
+            return;
+        }
+
         String action = intent.getAction();
 
         if ("org.aprsdroid.app.SERVICE_STARTED".equals(action)) {
@@ -202,6 +221,12 @@ public class aprsimport implements IPlugin {
                 aprsStatus.setText("🟢 APRSdroid Running");
                 aprsStatus.setTextColor(Color.GREEN);
 
+            }
+
+            String localCallsign = intent.getStringExtra("callsign");
+
+            if (messageManager != null) {
+                messageManager.setLocalCallsign(localCallsign);
             }
 
             return;
@@ -250,10 +275,7 @@ public class aprsimport implements IPlugin {
                 AprsPacketParser.parse(packet, rawComment, symbolHint);
 
         String aprsSymbol = parsed.symbol;
-        Log.d(TAG, "ICON DEBUG " + callsign
-                + " oldSymbol=[" + aprsSymbol + "]"
-                + " parsedSymbol=[" + parsed.symbol + "]"
-                + " packet=[" + packet + "]");
+
         if (aprsSymbol == null || aprsSymbol.length() < 2) aprsSymbol = "/>";
 
         String cleanedComment =
@@ -450,11 +472,6 @@ public class aprsimport implements IPlugin {
 
         String path = APRS_ICONSET_UID + "/" + table + "/" + storedName;
 
-        Log.d(TAG, "ICON PATH symbol=[" + aprsSymbol
-                + "] table=[" + table
-                + "] index=[" + index
-                + "] path=[" + path + "]");
-
         return path;
     }
 
@@ -511,6 +528,8 @@ public class aprsimport implements IPlugin {
 
                 radioController.startAprsdroid();
 
+                Log.d(TAG, "Start APRSdroid button sent SERVICE intent");
+
                 aprsStatus.setText("Starting APRSdroid...");
                 aprsStatus.setTextColor(Color.YELLOW);
 
@@ -549,10 +568,28 @@ public class aprsimport implements IPlugin {
 
                             if (!callsign.isEmpty()) {
 
-                                Toast.makeText(
-                                                MapView.getMapView().getContext(),
-                                                "Message to " + callsign,
-                                                Toast.LENGTH_SHORT)
+                                final EditText messageText = new EditText(pluginContext);
+                                messageText.setHint("Enter Message");
+
+                                new AlertDialog.Builder(MapView.getMapView().getContext())
+                                        .setTitle("Message to " + callsign)
+                                        .setView(messageText)
+                                        .setPositiveButton("Send", (msgDialog, msgWhich) -> {
+
+                                            String message = messageText.getText().toString().trim();
+
+                                            if (!message.isEmpty()) {
+                                                messageManager.sendAprsMessage(callsign, message);
+
+                                                Toast.makeText(
+                                                                MapView.getMapView().getContext(),
+                                                                "Sent APRS message to " + callsign,
+                                                                Toast.LENGTH_SHORT)
+                                                        .show();
+                                            }
+
+                                        })
+                                        .setNegativeButton("Cancel", null)
                                         .show();
 
                             }
@@ -922,5 +959,30 @@ public class aprsimport implements IPlugin {
                 it.remove();
             }
         }
+    }
+
+    private void promptForLocalCallsign() {
+
+        final EditText localCallText = new EditText(pluginContext);
+        localCallText.setHint("Your APRSdroid callsign, e.g. KD2VAR-7");
+
+        new AlertDialog.Builder(MapView.getMapView().getContext())
+                .setTitle("Set APRSdroid Callsign")
+                .setMessage("The plugin needs your APRSdroid callsign to filter APRS messages before sending them to GeoChat.")
+                .setView(localCallText)
+                .setPositiveButton("Save", (dialog, which) -> {
+
+                    String localCall = localCallText.getText()
+                            .toString()
+                            .trim()
+                            .toUpperCase();
+
+                    if (!localCall.isEmpty() && messageManager != null) {
+                        messageManager.setLocalCallsign(localCall);
+                    }
+
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 }

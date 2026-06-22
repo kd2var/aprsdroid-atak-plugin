@@ -10,6 +10,12 @@ public class AprsMessageManager {
 
     private final Context context;
 
+    private String localCallsign;
+
+    public boolean hasLocalCallsign() {
+        return localCallsign != null && !localCallsign.trim().isEmpty();
+    }
+
     public AprsMessageManager(Context context) {
         this.context = context;
     }
@@ -28,6 +34,11 @@ public class AprsMessageManager {
         String source = intent.getStringExtra("source");
         String dest = intent.getStringExtra("dest");
         String body = intent.getStringExtra("body");
+
+        if (!isMessageForUs(source, dest, action)) {
+            Log.d(TAG, "Ignoring APRS message not for this station");
+            return;
+        }
 
         Log.d(TAG, "APRS MESSAGE action=" + action
                 + " source=[" + source + "]"
@@ -58,5 +69,38 @@ public class AprsMessageManager {
         context.startService(i);
 
         Log.d(TAG, "Sent APRS message payload=[" + payload + "]");
+    }
+
+    public void setLocalCallsign(String callsign) {
+        if (callsign == null || callsign.trim().isEmpty())
+            return;
+
+        localCallsign = callsign.trim().toUpperCase();
+
+        Log.d(TAG, "Local APRS callsign set to [" + localCallsign + "]");
+    }
+
+    public boolean isMessageForUs(String source, String dest, String action) {
+        if (localCallsign == null || dest == null || source == null)
+            return false;
+
+        String local = localCallsign.toUpperCase();
+        String src = source.toUpperCase();
+        String dst = dest.toUpperCase();
+
+        if ("org.aprsdroid.app.MESSAGE".equals(action)) {
+            return dst.equals(local) || stripSsid(dst).equals(stripSsid(local));
+        }
+
+        if ("org.aprsdroid.app.MESSAGETX".equals(action)) {
+            return src.equals(local) || stripSsid(src).equals(stripSsid(local));
+        }
+
+        return false;
+    }
+
+    private String stripSsid(String call) {
+        int dash = call.indexOf('-');
+        return dash >= 0 ? call.substring(0, dash) : call;
     }
 }
