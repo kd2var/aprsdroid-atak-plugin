@@ -15,6 +15,7 @@ public class AprsMessageManager {
     private String localCallsign;
     private String lastMessageKey;
     private long lastMessageTime;
+    private int outgoingMessageId = 1;
 
     public boolean hasLocalCallsign() {
         return localCallsign != null && !localCallsign.trim().isEmpty();
@@ -79,7 +80,18 @@ public class AprsMessageManager {
 
         String paddedDest = String.format("%-9s", dest);
 
-        String payload = ":" + paddedDest + ":" + message.trim();
+        String msgId = String.valueOf(outgoingMessageId++);
+
+        if (outgoingMessageId > 99999) {
+            outgoingMessageId = 1;
+        }
+
+        String payload = ":"
+                + paddedDest
+                + ":"
+                + message.trim()
+                + "{"
+                + msgId;
 
         Intent i = new Intent("org.aprsdroid.app.SEND_PACKET");
         i.setPackage("org.aprsdroid.app");

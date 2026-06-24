@@ -459,7 +459,7 @@ public class aprsimport implements IPlugin {
                     + "time=\"" + time + "\" start=\"" + time + "\" stale=\"" + stale + "\" how=\"m-g\">"
                     + "<point lat=\"" + lat + "\" lon=\"" + lon + "\" hae=\"0\" ce=\"9999\" le=\"9999\"/>"
                     + "<detail>"
-                    + "<contact callsign=\"" + callsign + "\"/>"
+                    + "<contact callsign=\"" + callsign + "\" endpoint=\"*:-1:stcp\"/>"
                     + "<usericon iconsetpath=\"" + iconPath + "\"/>"
                     + "<remarks>" + detailText.replace("\"", "&quot;") + "</remarks>"
                     + "</detail></event>";

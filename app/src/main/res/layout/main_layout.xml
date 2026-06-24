@@ -13,33 +13,27 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="8dp">
+        android:layout_marginBottom="4dp">
 
         <Button
             android:id="@+id/radioPageButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_weight="1"
-            android:text="Radio Control" />
-            android:minHeight="36dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:textSize="12sp"
+            android:text="Radio Control"
+            android:textSize="12sp" />
 
         <Space
-            android:layout_width="8dp"
+            android:layout_width="6dp"
             android:layout_height="1dp" />
 
         <Button
             android:id="@+id/stationsPageButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_weight="1"
-            android:text="View Stations" />
-            android:minHeight="36dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:textSize="12sp"
+            android:text="View Stations"
+            android:textSize="12sp" />
 
     </LinearLayout>
 
@@ -133,58 +127,48 @@
         android:orientation="vertical"
         android:visibility="gone">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="SORT BY"
-            android:textStyle="bold"
-            android:textColor="#FFC107" />
-
-        <Button
-            android:id="@+id/sortButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Sort: Recent"
-            android:layout_marginBottom="4dp" />
-            android:minHeight="36dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:textSize="12sp"
+        <!-- SORT AND STALE CONTROLS -->
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:orientation="horizontal"
             android:layout_marginBottom="4dp">
 
             <Button
+                android:id="@+id/sortButton"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:text="Sort: Recent"
+                android:textSize="12sp" />
+
+            <Space
+                android:layout_width="6dp"
+                android:layout_height="1dp" />
+
+            <Button
                 android:id="@+id/staleMinus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="-" />
-                android:minHeight="36dp"
-                android:minWidth="36dp"
-                android:textSize="12sp"
-                android:padding="2dp"
+                android:layout_width="36dp"
+                android:layout_height="40dp"
+                android:text="-"
+                android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/staleHoursText"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="40dp"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="Stale Time: 1 Hour" />
-                android:textSize="14sp"
+                android:text="Stale: 1 Hr"
+                android:textSize="12sp" />
 
             <Button
                 android:id="@+id/stalePlus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="+" />
-                android:minHeight="36dp"
-                android:minWidth="36dp"
-                android:textSize="12sp"
-                android:padding="2dp"
+                android:layout_width="36dp"
+                android:layout_height="40dp"
+                android:text="+"
+                android:textSize="12sp" />
 
         </LinearLayout>
 
