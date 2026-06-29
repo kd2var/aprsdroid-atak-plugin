@@ -191,6 +191,7 @@ public class aprsimport implements IPlugin {
         filter.addAction("org.aprsdroid.app.HUD");
         filter.addAction("org.aprsdroid.app.SERVICE_STARTED");
         filter.addAction("org.aprsdroid.app.SERVICE_STOPPED");
+        filter.addAction(AprsChatConnector.ACTION_SEND_CHAT_APRS);
 
         aprsChatReplyReceiver = new BroadcastReceiver() {
             @Override

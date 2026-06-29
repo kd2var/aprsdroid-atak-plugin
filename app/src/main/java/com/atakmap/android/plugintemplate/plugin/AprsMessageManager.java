@@ -93,13 +93,16 @@ public class AprsMessageManager {
                 + "{"
                 + msgId;
 
-        Intent i = new Intent("org.aprsdroid.app.SEND_PACKET");
-        i.setPackage("org.aprsdroid.app");
-        i.putExtra("data", payload);
+        Intent sendIntent = new Intent("org.aprsdroid.app.SEND_PACKET");
+        sendIntent.setPackage("org.aprsdroid.app");
+        sendIntent.putExtra("data", payload);
 
-        context.startService(i);
-
-        Log.d(TAG, "Sent APRS message payload=[" + payload + "]");
+        try {
+            context.startService(sendIntent);
+            Log.d(TAG, "Sent APRS message payload=[" + payload + "]");
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to send APRS packet through APRSdroid", e);
+        }
     }
 
     public void setLocalCallsign(String callsign) {

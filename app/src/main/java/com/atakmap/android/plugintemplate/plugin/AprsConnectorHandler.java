@@ -57,6 +57,17 @@ public class AprsConnectorHandler extends
                                  String contactUID,
                                  String address) {
 
+        Log.d(TAG, "handleContact connectorType=["
+                + connectorType + "] contactUID=["
+                + contactUID + "] address=["
+                + address + "]");
+
+        if (!AprsChatConnector.ACTION_SEND_CHAT_APRS.equals(address)
+                && !AprsChatConnector.CONNECTOR_TYPE.equals(connectorType)
+                && !com.atakmap.android.contact.PluginConnector.CONNECTOR_TYPE.equals(connectorType)) {
+            return false;
+        }
+
         if (!FileSystemUtils.isEmpty(contactUID)) {
             Log.d(TAG, "handleContact: " + contactUID + ", " + address);
 
@@ -68,6 +79,26 @@ public class AprsConnectorHandler extends
                     !(list instanceof GroupContact))
                     || list instanceof GroupContact
                     && !((GroupContact) list).getUnmodifiable();
+
+            try {
+                if (list != null) {
+                    list.getExtras().putInt("unreadMessageCount", 0);
+                }
+
+                android.content.Intent markRead =
+                        new android.content.Intent("com.atakmap.chat.markmessageread");
+
+                markRead.putExtra("conversationId", contactUID);
+
+                com.atakmap.android.ipc.AtakBroadcast.getInstance()
+                        .sendBroadcast(markRead);
+
+                Contacts.getInstance().updateTotalUnreadCount();
+
+                Log.d(TAG, "Cleared APRS unread count for " + contactUID);
+            } catch (Exception e) {
+                Log.w(TAG, "Failed to clear APRS unread count for " + contactUID, e);
+            }
 
             ChatManagerMapComponent.getInstance()
                     .openConversation(contactUID, editable);
