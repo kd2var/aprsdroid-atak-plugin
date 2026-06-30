@@ -1,113 +1,188 @@
 # APRS Import Plugin for ATAK
 
-APRS Import is an ATAK plugin that imports APRS station data from APRSdroid and displays APRS stations as ATAK CoT map objects.
+The APRS Import Plugin is an ATAK CIV plugin that provides two-way integration between ATAK and the enhanced NA7Q fork of APRSdroid. It imports APRS stations into ATAK as CoT map objects, synchronizes APRS messaging with ATAK GeoChat, and allows APRS RF messaging directly from within ATAK through APRSdroid.
 
-This plugin was developed and tested primarily with NA7Q's fork of APRSdroid.
+---
 
-## Features
+# Features
 
-* Imports APRS position broadcasts from APRSdroid into ATAK
-* Displays APRS stations as ATAK map markers
-* APRS symbol/icon support, including primary and alternate symbol tables
-* APRS overlay symbol handling
-* Station list with sorting by recent activity or distance
-* Configurable stale-time cleanup
-* Station details popup with distance, comment, altitude, weather, course, speed, and last-heard time
-* Start APRSdroid, stop APRSdroid, and send beacon controls from inside ATAK
-* APRS message sending through APRSdroid raw packet support
-* Incoming APRS messages appear in ATAK GeoChat
-* GeoChat replies are sent back out through APRSdroid as APRS messages
-* Duplicate APRS message suppression for digipeated/repeated messages
-* APRS contacts are created in ATAK Contacts/GeoChat
-* Contacts can be opened from ATAK’s normal Contacts interface
+## APRS Station Import
 
-## Supported ATAK Version
+- Imports APRS position broadcasts from APRSdroid
+- Displays APRS stations as ATAK map markers
+- Supports APRS primary and alternate symbol tables
+- Automatic station updates
+- Configurable stale-time cleanup
+- Station sorting by distance or most recent activity
+- Detailed station information including:
+  - Callsign
+  - Distance
+  - Bearing
+  - Course
+  - Speed
+  - Altitude
+  - Weather
+  - Comment
+  - Last Heard
 
-Tested with:
-
-* ATAK CIV 5.6.0
-
-## Requirements
-
-* ATAK CIV
-* APRSdroid
-* NA7Q’s APRSdroid fork recommended
-* Android device with working ATAK/APRSdroid installation
-
-## Basic Usage
-
-### Radio Control Page
-
-Open the APRS Import plugin pane.
-
-The Radio Control page includes:
-
-* Start APRSdroid
-* Stop APRSdroid
-* Send Beacon
-* New Message
-* APRSdroid status indicator
-
-### View Stations Page
-
-The View Stations page includes:
-
-* Sort by Recent or Distance
-* Stale Time selector
-* APRS station list
-
-Tap a station to:
-
-* Pan the ATAK map to that station
-* Open a station details popup
+---
 
 ## APRS Messaging
 
-Incoming APRS messages addressed to the local APRSdroid callsign are imported into ATAK GeoChat.
+- Incoming APRS messages are imported into ATAK GeoChat
+- APRS stations automatically appear as ATAK Contacts
+- Conversations can be opened directly from ATAK Contacts
+- Replies sent from ATAK GeoChat are transmitted as APRS messages through APRSdroid
+- Duplicate APRS message suppression
+- Proper unread message handling
+- Native ATAK GeoChat integration
 
-GeoChat replies are sent back to APRSdroid as APRS messages using APRSdroid’s raw packet send interface.
+---
 
-If APRSdroid was already running before ATAK starts, the plugin may ask for the local APRSdroid callsign so it can filter APRS messages correctly.
+## Radio Controls
 
-## Stale Time
+The plugin can control APRSdroid directly from ATAK.
 
-The stale-time setting controls when stations are removed from:
+Functions include:
 
-* The station list
-* The ATAK map
+- Start APRSdroid
+- Stop APRSdroid
+- Send Beacon
+- New APRS Message
+- APRSdroid status indicator
 
-When a station exceeds the selected stale time, the plugin removes both the list entry and the map marker.
+---
 
-## Notes
+# Compatibility
 
-This plugin is designed to bridge APRSdroid and ATAK. It does not replace APRSdroid’s RF, APRS-IS, or modem functionality.
+This plugin is currently supported on:
 
-APRS parsing and symbol support are implemented inside the plugin, but APRS packet transmission still depends on APRSdroid.
+- ATAK CIV 5.6.x
 
-## Known Limitations
+The plugin was developed and tested using:
 
-* Primarily tested with NA7Q’s APRSdroid fork
-* Contact/radial menu integration for APRS map markers is still being refined
-* APRS object/item support may require additional testing
-* Message filtering depends on knowing the local APRSdroid callsign
+- Enhanced NA7Q APRSdroid fork
 
-## Build
+ATAK 5.7 is **not currently supported**.
 
-Build the debug APK with:
+---
+
+# Requirements
+
+- ATAK CIV 5.6.x
+- Enhanced NA7Q APRSdroid fork
+- Android device
+- Working APRSdroid configuration
+
+---
+
+# Important
+
+Version 1.3.3 works with the enhanced NA7Q fork of APRSdroid using its
+documented `SEND_PACKET` API.
+
+Standard APRS RF messaging works with the current APRSdroid release.
+
+However, APRSdroid currently creates packets sent through the
+`SEND_PACKET` API with a `TCPIP*` path instead of using the user's
+configured digipeater path. Because of this, packets sent from ATAK may
+not be digipeated over RF. Messaging to services such as WXBOT and other
+stations that depend on digipeating may therefore not function as
+expected.
+
+A pull request has been submitted to NA7Q's APRSdroid project to correct
+this behavior by making `SEND_PACKET` honor the configured digipeater
+path. The change is fully backward compatible and affects only the
+behavior of the documented API.
+
+Until that change is merged, users who require reliable digipeated RF
+messaging should use an APRSdroid build that includes the pending
+`SEND_PACKET` fix.
+
+---
+
+# Basic Usage
+
+## Radio Control
+
+Open the APRS Import plugin.
+
+Available controls:
+
+- Start APRSdroid
+- Stop APRSdroid
+- Send Beacon
+- New Message
+
+---
+
+## Viewing Stations
+
+Open the **Stations** page.
+
+Available functions:
+
+- Sort by Distance
+- Sort by Recent Activity
+- Select stale timeout
+
+Selecting a station will:
+
+- Center the ATAK map
+- Display station details
+
+---
+
+## APRS Messaging
+
+Incoming APRS messages automatically appear inside ATAK GeoChat.
+
+Replies sent from ATAK GeoChat are transmitted back through APRSdroid as
+standard APRS messages.
+
+If APRSdroid is already running when ATAK starts, the plugin may ask for
+the local APRS callsign so incoming messages can be filtered correctly.
+
+---
+
+# Known Limitations
+
+- Tested with ATAK CIV 5.6.x
+- Developed for the enhanced NA7Q fork of APRSdroid
+- APRS overlay symbols are not currently supported
+- Some APRS Objects and Items require additional field testing
+- APRSdroid performs all RF modem and APRS-IS functions
+
+---
+
+# Building
+
+Debug build:
 
 ```bash
 ./gradlew assembleCivDebug
 ```
 
-## Version
+Release build:
 
-Current development target:
-
-```text
-v1.3.0
+```bash
+./gradlew assembleCivRelease
 ```
 
-## Credits
+---
 
-Built for APRS-to-ATAK integration using APRSdroid and ATAK CIV.
+# Current Version
 
+v1.3.3
+
+---
+
+# Credits
+
+Developed by Scott (KD2VAR)
+
+Built using:
+
+- ATAK CIV Plugin SDK
+- Enhanced NA7Q APRSdroid fork
+- APRS Parser (AB0OO)
