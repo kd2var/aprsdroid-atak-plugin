@@ -171,11 +171,17 @@ Release build:
 
 ---
 
-# Current Version
+## Project Status
 
-v1.3.3
+Current Version: **v1.3.3**
+
+The plugin is feature complete for ATAK 5.6.x and is under active development.
+
+A pull request has been submitted to the APRSdroid project to improve the documented `SEND_PACKET` API by honoring the configured digipeater path. Once accepted, RF messages sent from ATAK will be digipeated using the user's configured path without requiring a modified APRSdroid build.
 
 ---
+
+
 
 # Credits
 
