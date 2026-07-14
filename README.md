@@ -78,7 +78,7 @@ ATAK 5.7 is **not currently supported**.
 
 # Important
 
-Version 1.3.3 works with the enhanced NA7Q fork of APRSdroid using its
+Version 1.3.4 works with the enhanced NA7Q fork of APRSdroid using its
 documented `SEND_PACKET` API.
 
 Standard APRS RF messaging works with the current APRSdroid release.
@@ -173,7 +173,7 @@ Release build:
 
 ## Project Status
 
-Current Version: **v1.3.3**
+Current Version: **v1.3.4**
 
 The plugin is feature complete for ATAK 5.6.x and is under active development.
 
