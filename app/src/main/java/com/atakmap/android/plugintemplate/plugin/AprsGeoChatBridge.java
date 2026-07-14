@@ -32,20 +32,35 @@ public class AprsGeoChatBridge {
     }
 
     public synchronized IndividualContact getOrCreateAprsContact(String callsign) {
-        if (callsign == null || callsign.trim().isEmpty())
-            return null;
+    if (callsign == null || callsign.trim().isEmpty())
+        return null;
 
-        callsign = callsign.trim().toUpperCase();
+    callsign = callsign.trim().toUpperCase();
 
-        IndividualContact contact = aprsContacts.get(callsign);
+    IndividualContact contact = aprsContacts.get(callsign);
 
-        if (contact == null) {
-            contact = new AprsContact(callsign);
-            aprsContacts.put(callsign, contact);
-            Contacts.getInstance().addContact(contact);
-        }
+    /*
+     * ATAK may remove the contact when its associated station becomes stale,
+     * while this bridge still has the old contact cached. Check ATAK's live
+     * contact registry instead of trusting the cache alone.
+     */
+    if (contact == null
+            || Contacts.getInstance().getContactByUuid(contact.getUid()) == null) {
 
-        return contact;
+        contact = new AprsContact(callsign);
+        aprsContacts.put(callsign, contact);
+        Contacts.getInstance().addContact(contact);
+    }
+
+    return contact;
+    }
+
+     public synchronized void forgetAprsContact(String callsign) {
+    if (callsign == null || callsign.trim().isEmpty())
+        return;
+
+    callsign = callsign.trim().toUpperCase();
+    aprsContacts.remove(callsign);
     }
 
     public void receiveAprsMessage(String source, String dest, String body) {

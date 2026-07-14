@@ -1015,6 +1015,8 @@ public class aprsimport implements IPlugin {
                     item.getGroup().removeItem(item);
                 }
 
+                geoChatBridge.forgetAprsContact(call);
+
                 stationComments.remove(call);
                 stationAltitude.remove(call);
                 stationTemperature.remove(call);
