@@ -11,6 +11,13 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -99,12 +106,53 @@ public class aprsimport implements IPlugin {
     private final HashMap<String, String> stationCourse = new HashMap<>();
     private final HashMap<String, String> stationSpeed = new HashMap<>();
 
+    // Persistent APRS station history.
+// Live ATAK state follows staleMillis; this cache retains up to 24 hours.
+    private static final long STATION_CACHE_RETENTION_MS =
+            24L * 60L * 60L * 1000L;
+
+    private static final String STATION_CACHE_FILE =
+            "aprs_station_cache.json";
+
+    private final HashMap<String, CachedAprsStation> stationCache =
+            new HashMap<>();
+
+    private final Handler cacheSaveHandler =
+            new Handler(Looper.getMainLooper());
+
+    private final Runnable cacheSaveRunnable =
+            this::saveStationCache;
+
+    private static class CachedAprsStation {
+
+        String callsign;
+        long lastHeard;
+
+        double latitude;
+        double longitude;
+        boolean hasPosition;
+
+        String symbol;
+        String comment;
+        String altitude;
+        String temperature;
+        String wind;
+        String barometer;
+        String humidity;
+        String rain1Hour;
+        String rain24Hour;
+        String rainMidnight;
+        String course;
+        String speed;
+    }
+
     private final CotDispatcher cotDispatcher = com.atakmap.android.cot.CotMapComponent.getInternalDispatcher();
 
     private static final String APRS_ICONSET_UID = "9c9f2b11-0d60-4f6c-a001-aprsiconset-v3";
     private static final String APRS_ICONSET_NAME = "APRS";
 
     private static final String PREF_STALE_HOURS = "aprs_stale_hours";
+    private static final String PREF_SORT_BY_DISTANCE = "aprs_sort_by_distance";
     private long staleMillis = 60 * 60 * 1000L;
 
     private final Handler cleanupHandler = new Handler(Looper.getMainLooper());
@@ -175,6 +223,11 @@ public class aprsimport implements IPlugin {
         AtakPreferences prefs = new AtakPreferences(MapView.getMapView().getContext());
         int savedHours = prefs.get(PREF_STALE_HOURS, 1);
         staleMillis = savedHours * 60L * 60L * 1000L;
+
+        sortByDistance = prefs.get(PREF_SORT_BY_DISTANCE, false);
+
+        loadStationCache();
+        reconcileStationsWithStaleWindow();
 
         aprsReceiver = new BroadcastReceiver() {
             @Override
@@ -414,6 +467,16 @@ public class aprsimport implements IPlugin {
             sendAprsCot(callsign, lat, lon, System.currentTimeMillis(), iconPath, detailText);
         }
 
+        /*
+         * Save/update this station in the persistent 24-hour cache.
+         * This does NOT create the live marker/contact/list entry;
+         * the existing logic above still does that.
+         */
+        updateStationCacheFromLive(
+                callsign,
+                loc,
+                aprsSymbol);
+
         refreshAprsPane();
     }
 
@@ -595,6 +658,13 @@ public class aprsimport implements IPlugin {
             Button newMessageButton = paneView.findViewById(R.id.newMessageButton);
             Button sortButton = paneView.findViewById(R.id.sortButton);
 
+            AtakPreferences prefs = new AtakPreferences(MapView.getMapView().getContext());
+
+            sortButton.setText(
+                    sortByDistance
+                            ? "Sort: Distance"
+                            : "Sort: Recent");
+
             startAprsButton.setOnClickListener(v -> {
 
                 radioController.startAprsdroid();
@@ -675,13 +745,14 @@ public class aprsimport implements IPlugin {
 
                 sortByDistance = !sortByDistance;
 
+                prefs.set(PREF_SORT_BY_DISTANCE, sortByDistance);
+
                 sortButton.setText(
                         sortByDistance
                                 ? "Sort: Distance"
                                 : "Sort: Recent");
 
                 refreshAprsPane();
-
             });
 
             aprsList = paneView.findViewById(R.id.aprsList);
@@ -690,7 +761,6 @@ public class aprsimport implements IPlugin {
             aprsStatus.setTextColor(Color.LTGRAY);
 
             final int[] choices = {1, 2, 4, 8, 12, 24};
-            AtakPreferences prefs = new AtakPreferences(MapView.getMapView().getContext());
             int savedHours = prefs.get(PREF_STALE_HOURS, 1);
 
             final int[] currentIndex = {0};
@@ -728,10 +798,25 @@ public class aprsimport implements IPlugin {
         refreshAprsPane();
     }
 
-    private void updateStaleTime(int[] choices, int index, TextView textView, AtakPreferences prefs) {
-        staleMillis = choices[index] * 60L * 60L * 1000L;
-        textView.setText("Stale Time: " + choices[index] + " hour");
-        prefs.set(PREF_STALE_HOURS, choices[index]);
+    private void updateStaleTime(
+            int[] choices,
+            int index,
+            TextView textView,
+            AtakPreferences prefs) {
+
+        staleMillis =
+                choices[index] * 60L * 60L * 1000L;
+
+        textView.setText(
+                "Stale Time: "
+                        + choices[index]
+                        + " hour");
+
+        prefs.set(
+                PREF_STALE_HOURS,
+                choices[index]);
+
+        reconcileStationsWithStaleWindow();
     }
 
     private void showStationDetails(String call) {
@@ -998,39 +1083,38 @@ public class aprsimport implements IPlugin {
     }
 
     private void removeStaleStations() {
+
         long now = System.currentTimeMillis();
-        Iterator<Map.Entry<String, Long>> it = lastHeard.entrySet().iterator();
 
-        while (it.hasNext()) {
-            Map.Entry<String, Long> entry = it.next();
+        /*
+         * Remove stations from the live ATAK state when they fall
+         * outside the currently selected stale window.
+         *
+         * Their CachedAprsStation record remains in stationCache
+         * until the hard 24-hour retention limit.
+         */
+        List<String> liveStations =
+                new ArrayList<>(lastHeard.keySet());
 
-            if (now - entry.getValue() > staleMillis) {
-                String call = entry.getKey();
+        for (String call : liveStations) {
 
-                MapItem item = MapView.getMapView()
-                        .getRootGroup()
-                        .deepFindUID(getAprsUid(call));
+            Long heard = lastHeard.get(call);
 
-                if (item != null && item.getGroup() != null) {
-                    item.getGroup().removeItem(item);
-                }
+            if (heard == null
+                    || now - heard > staleMillis) {
 
-                geoChatBridge.forgetAprsContact(call);
-
-                stationComments.remove(call);
-                stationAltitude.remove(call);
-                stationTemperature.remove(call);
-                stationWind.remove(call);
-                stationBarometer.remove(call);
-                stationHumidity.remove(call);
-                stationCourse.remove(call);
-                stationSpeed.remove(call);
-                stationRain1Hour.remove(call);
-                stationRain24Hour.remove(call);
-                stationRainMidnight.remove(call);
-
-                it.remove();
+                removeStationFromLive(call);
             }
+        }
+
+        /*
+         * Permanently purge cache records older than 24 hours.
+         */
+        boolean cacheChanged =
+                purgeExpiredCacheEntries();
+
+        if (cacheChanged) {
+            scheduleStationCacheSave();
         }
     }
 
@@ -1057,6 +1141,527 @@ public class aprsimport implements IPlugin {
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    private JSONObject cachedStationToJson(CachedAprsStation station) {
+
+        JSONObject json = new JSONObject();
+
+        try {
+            json.put("callsign", station.callsign);
+            json.put("lastHeard", station.lastHeard);
+
+            json.put("hasPosition", station.hasPosition);
+
+            if (station.hasPosition) {
+                json.put("latitude", station.latitude);
+                json.put("longitude", station.longitude);
+            }
+
+            putJsonString(json, "symbol", station.symbol);
+            putJsonString(json, "comment", station.comment);
+            putJsonString(json, "altitude", station.altitude);
+            putJsonString(json, "temperature", station.temperature);
+            putJsonString(json, "wind", station.wind);
+            putJsonString(json, "barometer", station.barometer);
+            putJsonString(json, "humidity", station.humidity);
+            putJsonString(json, "rain1Hour", station.rain1Hour);
+            putJsonString(json, "rain24Hour", station.rain24Hour);
+            putJsonString(json, "rainMidnight", station.rainMidnight);
+            putJsonString(json, "course", station.course);
+            putJsonString(json, "speed", station.speed);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Failed converting cached APRS station to JSON", e);
+        }
+
+        return json;
+    }
+
+    private void putJsonString(JSONObject json, String key, String value)
+            throws Exception {
+
+        if (value != null) {
+            json.put(key, value);
+        }
+    }
+
+    private CachedAprsStation cachedStationFromJson(JSONObject json) {
+
+        try {
+            CachedAprsStation station = new CachedAprsStation();
+
+            station.callsign = json.optString("callsign", null);
+            station.lastHeard = json.optLong("lastHeard", 0L);
+
+            station.hasPosition =
+                    json.optBoolean("hasPosition", false);
+
+            if (station.hasPosition) {
+                station.latitude = json.optDouble("latitude", 0.0);
+                station.longitude = json.optDouble("longitude", 0.0);
+            }
+
+            station.symbol = optNullableString(json, "symbol");
+            station.comment = optNullableString(json, "comment");
+            station.altitude = optNullableString(json, "altitude");
+            station.temperature = optNullableString(json, "temperature");
+            station.wind = optNullableString(json, "wind");
+            station.barometer = optNullableString(json, "barometer");
+            station.humidity = optNullableString(json, "humidity");
+            station.rain1Hour = optNullableString(json, "rain1Hour");
+            station.rain24Hour = optNullableString(json, "rain24Hour");
+            station.rainMidnight = optNullableString(json, "rainMidnight");
+            station.course = optNullableString(json, "course");
+            station.speed = optNullableString(json, "speed");
+
+            if (station.callsign == null
+                    || station.callsign.trim().isEmpty()
+                    || station.lastHeard <= 0) {
+
+                return null;
+            }
+
+            return station;
+
+        } catch (Exception e) {
+            Log.e(TAG, "Failed reading cached APRS station", e);
+            return null;
+        }
+    }
+
+    private String optNullableString(JSONObject json, String key) {
+
+        if (!json.has(key) || json.isNull(key)) {
+            return null;
+        }
+
+        String value = json.optString(key, null);
+
+        if (value == null || value.isEmpty()) {
+            return null;
+        }
+
+        return value;
+    }
+
+    private void scheduleStationCacheSave() {
+
+        cacheSaveHandler.removeCallbacks(cacheSaveRunnable);
+
+        // Debounce busy APRS traffic so many packets can become one disk write.
+        cacheSaveHandler.postDelayed(
+                cacheSaveRunnable,
+                3000);
+    }
+
+    private void saveStationCache() {
+
+        purgeExpiredCacheEntries();
+
+        JSONArray array = new JSONArray();
+
+        for (CachedAprsStation station : stationCache.values()) {
+            array.put(cachedStationToJson(station));
+        }
+
+        Context atakContext = MapView.getMapView().getContext();
+
+        File filesDir = new File(
+                atakContext.getFilesDir(),
+                "aprsimport");
+
+        if (!filesDir.exists()) {
+            if (!filesDir.mkdirs()) {
+                Log.e(TAG,
+                        "Unable to create APRS cache directory: "
+                                + filesDir.getAbsolutePath());
+                return;
+            }
+        }
+
+        File target =
+                new File(filesDir, STATION_CACHE_FILE);
+
+        File temp =
+                new File(filesDir, STATION_CACHE_FILE + ".tmp");
+
+        try (FileOutputStream out =
+                     new FileOutputStream(temp)) {
+
+            byte[] data =
+                    array.toString().getBytes(StandardCharsets.UTF_8);
+
+            out.write(data);
+            out.flush();
+
+            if (target.exists() && !target.delete()) {
+                Log.w(TAG, "Unable to remove previous APRS cache");
+            }
+
+            if (!temp.renameTo(target)) {
+                Log.e(TAG, "Unable to replace APRS station cache");
+            } else {
+                Log.d(TAG,
+                        "Saved APRS station cache: "
+                                + stationCache.size()
+                                + " stations");
+            }
+
+        } catch (Exception e) {
+
+            Log.e(TAG, "Failed saving APRS station cache", e);
+
+            if (temp.exists()) {
+                temp.delete();
+            }
+        }
+    }
+
+    private boolean purgeExpiredCacheEntries() {
+
+        long now = System.currentTimeMillis();
+
+        boolean changed = false;
+
+        Iterator<Map.Entry<String, CachedAprsStation>> iterator =
+                stationCache.entrySet().iterator();
+
+        while (iterator.hasNext()) {
+
+            Map.Entry<String, CachedAprsStation> entry =
+                    iterator.next();
+
+            CachedAprsStation station = entry.getValue();
+
+            if (station == null
+                    || station.lastHeard <= 0
+                    || now - station.lastHeard
+                    > STATION_CACHE_RETENTION_MS) {
+
+                iterator.remove();
+                changed = true;
+            }
+        }
+
+        return changed;
+    }
+
+    private void loadStationCache() {
+
+        stationCache.clear();
+
+        Context atakContext = MapView.getMapView().getContext();
+
+        File filesDir = new File(
+                atakContext.getFilesDir(),
+                "aprsimport");
+
+        if (!filesDir.exists()) {
+            if (!filesDir.mkdirs()) {
+                Log.e(TAG,
+                        "Unable to create APRS cache directory: "
+                                + filesDir.getAbsolutePath());
+                return;
+            }
+        }
+
+        File file =
+                new File(
+                        filesDir,
+                        STATION_CACHE_FILE);
+
+        if (!file.exists()) {
+            Log.d(TAG, "No APRS station cache exists yet");
+            return;
+        }
+
+        try (FileInputStream in =
+                     new FileInputStream(file)) {
+
+            byte[] data = new byte[(int) file.length()];
+
+            int offset = 0;
+
+            while (offset < data.length) {
+
+                int count =
+                        in.read(data, offset, data.length - offset);
+
+                if (count < 0) {
+                    break;
+                }
+
+                offset += count;
+            }
+
+            JSONArray array =
+                    new JSONArray(
+                            new String(
+                                    data,
+                                    0,
+                                    offset,
+                                    StandardCharsets.UTF_8));
+
+            for (int i = 0; i < array.length(); i++) {
+
+                JSONObject json =
+                        array.optJSONObject(i);
+
+                if (json == null) {
+                    continue;
+                }
+
+                CachedAprsStation station =
+                        cachedStationFromJson(json);
+
+                if (station != null) {
+
+                    stationCache.put(
+                            station.callsign,
+                            station);
+                }
+            }
+
+            boolean purged =
+                    purgeExpiredCacheEntries();
+
+            Log.d(TAG,
+                    "Loaded APRS station cache: "
+                            + stationCache.size()
+                            + " stations");
+
+            if (purged) {
+                scheduleStationCacheSave();
+            }
+
+        } catch (Exception e) {
+
+            Log.e(TAG, "Failed loading APRS station cache", e);
+
+            // A damaged cache should never prevent APRS Import from working.
+            stationCache.clear();
+        }
+    }
+
+    private void updateStationCacheFromLive(
+            String callsign,
+            Location loc,
+            String aprsSymbol) {
+
+        if (callsign == null || callsign.trim().isEmpty()) {
+            return;
+        }
+
+        CachedAprsStation station = stationCache.get(callsign);
+
+        if (station == null) {
+            station = new CachedAprsStation();
+            station.callsign = callsign;
+            stationCache.put(callsign, station);
+        }
+
+        Long heard = lastHeard.get(callsign);
+
+        if (heard != null) {
+            station.lastHeard = heard;
+        } else {
+            station.lastHeard = System.currentTimeMillis();
+        }
+
+        /*
+         * Only replace the stored position when this packet actually
+         * contains a position. A later status/weather/message packet
+         * must not erase a previously known position.
+         */
+        if (loc != null) {
+            station.latitude = loc.getLatitude();
+            station.longitude = loc.getLongitude();
+            station.hasPosition = true;
+        }
+
+        /*
+         * Same idea with the APRS symbol: don't overwrite a previously
+         * known symbol with null.
+         */
+        if (aprsSymbol != null && !aprsSymbol.isEmpty()) {
+            station.symbol = aprsSymbol;
+        }
+
+        station.comment = stationComments.get(callsign);
+        station.altitude = stationAltitude.get(callsign);
+        station.temperature = stationTemperature.get(callsign);
+        station.wind = stationWind.get(callsign);
+        station.barometer = stationBarometer.get(callsign);
+        station.humidity = stationHumidity.get(callsign);
+        station.rain1Hour = stationRain1Hour.get(callsign);
+        station.rain24Hour = stationRain24Hour.get(callsign);
+        station.rainMidnight = stationRainMidnight.get(callsign);
+        station.course = stationCourse.get(callsign);
+        station.speed = stationSpeed.get(callsign);
+
+        scheduleStationCacheSave();
+    }
+
+    private void restoreCachedStationToLive(CachedAprsStation station) {
+
+        if (station == null
+                || station.callsign == null
+                || station.callsign.trim().isEmpty()) {
+            return;
+        }
+
+        String call = station.callsign;
+
+        lastHeard.put(call, station.lastHeard);
+
+        putOrRemove(stationComments, call, station.comment);
+        putOrRemove(stationAltitude, call, station.altitude);
+        putOrRemove(stationTemperature, call, station.temperature);
+        putOrRemove(stationWind, call, station.wind);
+        putOrRemove(stationBarometer, call, station.barometer);
+        putOrRemove(stationHumidity, call, station.humidity);
+        putOrRemove(stationRain1Hour, call, station.rain1Hour);
+        putOrRemove(stationRain24Hour, call, station.rain24Hour);
+        putOrRemove(stationRainMidnight, call, station.rainMidnight);
+        putOrRemove(stationCourse, call, station.course);
+        putOrRemove(stationSpeed, call, station.speed);
+
+        if (station.hasPosition) {
+
+            MapItem existing = MapView.getMapView()
+                    .getRootGroup()
+                    .deepFindUID(getAprsUid(call));
+
+            if (!(existing instanceof Marker)) {
+
+                if (geoChatBridge != null) {
+                    geoChatBridge.getOrCreateAprsContact(call);
+                }
+
+                String symbol = station.symbol;
+
+                if (symbol == null || symbol.length() < 2) {
+                    symbol = "/>";
+                }
+
+                String iconPath = buildAprsIconPath(symbol);
+                String detailText = buildDetailText(call);
+
+                sendAprsCot(
+                        call,
+                        station.latitude,
+                        station.longitude,
+                        station.lastHeard,
+                        iconPath,
+                        detailText);
+
+            } else {
+
+                /*
+                 * Marker already exists.
+                 * Do not create a duplicate.
+                 */
+                if (geoChatBridge != null) {
+                    geoChatBridge.getOrCreateAprsContact(call);
+                }
+            }
+        }
+    }
+
+    private void putOrRemove(
+            HashMap<String, String> map,
+            String callsign,
+            String value) {
+
+        if (value != null && !value.isEmpty()) {
+            map.put(callsign, value);
+        } else {
+            map.remove(callsign);
+        }
+    }
+
+    private void removeStationFromLive(String call) {
+
+        MapItem item = MapView.getMapView()
+                .getRootGroup()
+                .deepFindUID(getAprsUid(call));
+
+        if (item != null && item.getGroup() != null) {
+            item.getGroup().removeItem(item);
+        }
+
+        if (geoChatBridge != null) {
+            geoChatBridge.forgetAprsContact(call);
+        }
+
+        lastHeard.remove(call);
+        stationComments.remove(call);
+        stationAltitude.remove(call);
+        stationTemperature.remove(call);
+        stationWind.remove(call);
+        stationBarometer.remove(call);
+        stationHumidity.remove(call);
+        stationCourse.remove(call);
+        stationSpeed.remove(call);
+        stationRain1Hour.remove(call);
+        stationRain24Hour.remove(call);
+        stationRainMidnight.remove(call);
+    }
+
+    private void reconcileStationsWithStaleWindow() {
+
+        long now = System.currentTimeMillis();
+
+        /*
+         * First purge anything older than the hard 24-hour cache limit.
+         */
+        boolean cacheChanged = purgeExpiredCacheEntries();
+
+        /*
+         * Remove live stations that are no longer inside
+         * the currently selected stale window.
+         */
+        List<String> liveStations =
+                new ArrayList<>(lastHeard.keySet());
+
+        for (String call : liveStations) {
+
+            Long heard = lastHeard.get(call);
+
+            if (heard == null
+                    || now - heard > staleMillis) {
+
+                removeStationFromLive(call);
+            }
+        }
+
+        /*
+         * Restore cached stations that qualify for the current window
+         * but are not currently live.
+         */
+        for (CachedAprsStation station : stationCache.values()) {
+
+            if (station == null
+                    || station.lastHeard <= 0) {
+                continue;
+            }
+
+            long age = now - station.lastHeard;
+
+            if (age <= staleMillis) {
+
+                if (!lastHeard.containsKey(station.callsign)) {
+                    restoreCachedStationToLive(station);
+                }
+            }
+        }
+
+        if (cacheChanged) {
+            scheduleStationCacheSave();
+        }
+
+        refreshAprsPane();
     }
 
     private String getAprsUid(String callsign) {
